@@ -1,0 +1,479 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MTM 와이어프레임 — 구조 미리보기 (흑백)</title>
+<style>
+/* ── 흑백 lo-fi 규약: 회색조만. 브랜드색·최종 폰트·그림자·이미지 금지 ── */
+:root{
+  --ink:#222; --ink2:#555; --ink3:#888;
+  --box:#e8e8e8; --box2:#f2f2f2; --line:#b4b4b4; --line2:#d8d8d8;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#fafafa;color:var(--ink);
+  font:14px/1.55 -apple-system,'Segoe UI','Malgun Gothic',sans-serif}
+a{color:var(--ink)}
+.page{max-width:1320px;margin:0 auto;padding:24px}
+h1{font-size:22px;margin:0 0 4px}
+h2{font-size:17px;margin:44px 0 4px;padding-top:14px;border-top:1px solid var(--line2)}
+h3{font-size:14px;font-weight:600;margin:22px 0 8px;color:var(--ink2)}
+.sub{color:var(--ink3);font-size:13px;margin:0 0 18px}
+.toc{background:#fff;border:1px solid var(--line2);padding:14px 18px;margin:16px 0 8px}
+.toc ul{margin:6px 0 0;padding-left:18px;columns:2}
+.toc li{margin:2px 0;font-size:13px}
+.top{float:right;font-size:11px;color:var(--ink3);text-decoration:none}
+
+/* 화면 프레임 */
+.frame{background:#fff;border:1px solid var(--line);margin:10px 0 6px}
+.frame.desk{width:100%}
+.frame.mob{width:390px}
+.fcap{font-size:11px;color:var(--ink3);margin:0 0 14px}
+.row{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+
+/* 와이어 요소 */
+.hdr{display:flex;justify-content:space-between;align-items:center;
+  padding:10px 14px;border-bottom:1px solid var(--line)}
+.brand{font-weight:700;letter-spacing:1px}
+.zone{padding:14px;border-bottom:1px solid var(--line2)}
+.zone:last-child{border-bottom:0}
+.zlabel{font-size:10px;letter-spacing:1px;color:var(--ink3);margin-bottom:8px}
+.split{display:flex;align-items:stretch;min-height:420px}
+.col-main{flex:1;padding:14px;border-right:1px solid var(--line2)}
+.col-side{width:300px;flex:none;padding:14px}
+
+.box{background:var(--box);border:1px solid var(--line2);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--ink3);font-size:11px;text-align:center;padding:8px}
+.box.dash{background:var(--box2);border-style:dashed}
+.stage{height:380px}
+.stage.sm{height:260px}
+.thumb{width:64px;height:64px;flex:none}
+.thumb.sel{border:2px solid var(--ink);background:var(--box)}
+.thumbs{display:flex;gap:8px;align-items:center;overflow-x:auto}
+.tile{width:100%;}
+.tile .img{height:120px;background:var(--box);border:1px solid var(--line2);
+  display:flex;align-items:center;justify-content:center;color:var(--ink3);font-size:11px}
+.tile .nm{font-size:12px;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .pr{font-size:12px;color:var(--ink2)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.hscroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px}
+.hscroll .tile{width:118px;flex:none}
+
+.btn{display:inline-block;border:1px solid var(--ink);padding:7px 14px;
+  font-size:11px;letter-spacing:1px;background:#fff}
+.btn.ghost{border-color:var(--line);color:var(--ink3)}
+.iconbtn{display:inline-flex;width:30px;height:30px;border:1px solid var(--ink);
+  border-radius:50%;align-items:center;justify-content:center;font-size:12px;background:#fff}
+.tag{display:inline-block;border:1px solid var(--line);padding:3px 8px;font-size:10px;
+  letter-spacing:1px;color:var(--ink2)}
+.field{border:0;border-bottom:1px solid var(--ink);padding:8px 0;margin:10px 0 0;
+  color:var(--ink3);font-size:13px}
+.err{font-size:12px;color:var(--ink2);border-left:2px solid var(--ink);padding-left:6px;margin-top:4px}
+.pb{height:2px;background:var(--box)}
+.pb>i{display:block;height:2px;width:42%;background:var(--ink)}
+.pblabel{font-size:11px;letter-spacing:1px;color:var(--ink2);margin-top:6px}
+.empty{background:var(--box2);border:1px dashed var(--line);padding:38px 16px;
+  text-align:center;color:var(--ink3);font-size:12px}
+.dim{opacity:.35}
+.note{font-size:11px;color:var(--ink3);margin:6px 0 0}
+.warn{font-size:11px;color:var(--ink2);border:1px solid var(--line);
+  padding:2px 6px;display:inline-block;margin-left:6px}
+.center{max-width:360px;margin:0 auto;padding:34px 0}
+</style></head><body><div class="page">
+
+<h1>MTM 와이어프레임 — 구조 미리보기</h1>
+<p class="sub">흑백 lo-fi. <b>색·서체·그림자는 일부러 뺐습니다</b> — 배치와 위계만 보세요. 룩은 DESIGN.md(1단계), 실제 스타일은 3단계에서 입힙니다.<br>
+<span class="warn">⚠동작경계</span> 표시는 <b>새 API가 필요해 개발 체인 확인이 필요한</b> 요소입니다.</p>
+
+<div class="toc"><b>화면 목록</b>
+<ul>
+<li><a href="#s1">1. 로그인</a></li>
+<li><a href="#s2">2. 신체 정보</a></li>
+<li><a href="#s3">3. 착용 화면 — 정상 (PC)</a></li>
+<li><a href="#s4">4. 착용 화면 — 사진 없음</a></li>
+<li><a href="#s5">5. 착용 화면 — 기준 이미지 생성 중</a></li>
+<li><a href="#s6">6. 착용 화면 — 제품 미선택</a></li>
+<li><a href="#s7">7. 착용 화면 — 착용 이미지 생성 중</a></li>
+<li><a href="#s8">8. 착용 화면 — 생성 실패</a></li>
+<li><a href="#s9">9. 착용 화면 — 모바일 (1열)</a></li>
+<li><a href="#s10">10. 사진첩</a></li>
+<li><a href="#s11">11. 제품 목록</a></li>
+<li><a href="#s12">12. 제품 상세 ⚠B3</a></li>
+</ul></div>
+
+<!-- 1 로그인 -->
+<h2 id="s1">1. 로그인 <a class="top" href="#">↑</a></h2>
+<p class="fcap">최대 폭 360px 중앙. 헤더 없음(로그인 전).</p>
+<div class="row">
+<div class="frame desk" style="max-width:520px"><div class="zone"><div class="center">
+  <div style="text-align:center;font-weight:700;letter-spacing:2px;margin-bottom:26px">MTM</div>
+  <div class="field">이메일</div>
+  <div class="field">비밀번호</div>
+  <div class="err">잘못된 이메일 또는 비밀번호입니다 &nbsp;<i>(FieldError)</i></div>
+  <div style="margin-top:20px"><span class="btn">로그인</span></div>
+  <p class="note">계정이 없으신가요? <u>가입하기</u></p>
+  <p class="note" style="margin-top:20px;border-top:1px solid var(--line2);padding-top:12px">
+    체험 계정 입구는 <b>두지 않는다</b> — 새 API가 필요해 뺐다(사용자 확정).<br>
+    시연은 미리 만들어 둔 계정으로 로그인해 진행한다.</p>
+</div></div></div>
+</div>
+
+<!-- 2 신체 정보 -->
+<h2 id="s2">2. 신체 정보 <a class="top" href="#">↑</a></h2>
+<p class="fcap">첫 로그인 직후 강제 진입. 저장해야 착용 화면으로 넘어감 (신체 정보는 필수).</p>
+<div class="frame desk" style="max-width:560px">
+  <div class="hdr"><span class="brand">MTM</span><span style="font-size:11px;color:var(--ink3)">내 정보 · 로그아웃<span class="warn">⚠B2</span></span></div>
+  <div class="zone"><div style="max-width:420px">
+    <div style="font-size:18px;font-weight:600">내 정보</div>
+    <h3>신체 정보</h3>
+    <div class="field">키 (cm)</div>
+    <div class="err">키를 입력해 주세요</div>
+    <div class="field">몸무게 (kg)</div>
+    <div style="margin-top:20px"><span class="btn ghost">저장</span>
+      <span class="note" style="display:inline">← 두 값이 유효할 때까지 비활성 (H5 에러 예방)</span></div>
+    <div style="margin-top:22px;border-top:1px solid var(--line2);padding-top:12px;font-size:12px;color:var(--ink3)">
+      이메일 &nbsp; user@example.com</div>
+  </div></div>
+</div>
+
+<!-- 3 착용 화면 정상 -->
+<h2 id="s3">3. 착용 화면 — 정상 (PC · 2열 + 상단 사진첩) <a class="top" href="#">↑</a></h2>
+<p class="fcap">Z2(착용 이미지)가 가장 크다. 조작은 전부 무대 <b>바깥 아래</b>. Z3는 고정 300px.</p>
+<div class="frame desk">
+  <div class="hdr"><span class="brand">MTM</span>
+    <span style="font-size:11px;color:var(--ink3)">내 정보 · 로그아웃<span class="warn">⚠B2</span></span></div>
+  <div class="zone">
+    <div class="zlabel">Z1 · 내 사진 <span style="float:right">전체 보기 →</span></div>
+    <div class="thumbs">
+      <div class="box thumb sel">▨ 선택됨</div>
+      <div class="box thumb">▨</div>
+      <div class="box thumb">▨</div>
+      <div class="box thumb dash">+ 올리기</div>
+    </div>
+  </div>
+  <div class="split">
+    <div class="col-main">
+      <div class="zlabel">Z2 · LookStage</div>
+      <div class="box stage">▨ 착용 이미지<br>(전신 · 세로 김)</div>
+      <div style="margin-top:12px">
+        <div style="font-size:12px">Aren Zip Hobo in Visetos</div>
+        <div style="margin:6px 0"><span class="tag">한쪽 어깨</span> <span class="tag">14.2 × 11.8 IN</span></div>
+        <span class="btn">다시 만들기</span> <span class="iconbtn">×</span>
+      </div>
+    </div>
+    <div class="col-side">
+      <div class="zlabel">Z3 · 제품 128 <span style="float:right">전체 →</span></div>
+      <div class="grid2">
+        <div class="tile"><div class="img">▨</div><div class="nm">Aren Zip Hobo</div><div class="pr">$1,250</div></div>
+        <div class="tile"><div class="img">▨</div><div class="nm">아주 긴 한국어 제품명이 들어오면 한 줄로 잘린다</div><div class="pr">$980</div></div>
+        <div class="tile"><div class="img">▨</div><div class="nm">Stark Backpack</div><div class="pr">$890</div></div>
+        <div class="tile"><div class="img">▨</div><div class="nm">Liz Shopper</div><div class="pr">$1,050</div></div>
+        <div class="tile"><div class="img">▨</div><div class="nm">Himmel Tote</div><div class="pr">$760</div></div>
+        <div class="tile"><div class="img">▨</div><div class="nm">Klara Hobo</div><div class="pr">$1,120</div></div>
+      </div>
+      <p class="note">↕ 세로 스크롤</p>
+    </div>
+  </div>
+</div>
+
+<!-- 4 사진 없음 -->
+<h2 id="s4">4. 착용 화면 — 사진 없음 (첫 진입) <a class="top" href="#">↑</a></h2>
+<p class="fcap">U4 처방: Z2·Z3를 흐리고 Z1만 살린다 — <b>갈 길이 하나만 남는다.</b></p>
+<div class="frame desk">
+  <div class="hdr"><span class="brand">MTM</span><span style="font-size:11px;color:var(--ink3)">내 정보 · 로그아웃</span></div>
+  <div class="zone">
+    <div class="zlabel">Z1 · 내 사진</div>
+    <div class="empty">아직 올린 사진이 없습니다<div style="margin-top:12px"><span class="btn">사진 올리기</span></div></div>
+  </div>
+  <div class="split dim">
+    <div class="col-main"><div class="zlabel">Z2</div><div class="box stage sm">▨</div></div>
+    <div class="col-side"><div class="zlabel">Z3</div>
+      <div class="grid2"><div class="tile"><div class="img">▨</div></div><div class="tile"><div class="img">▨</div></div>
+      <div class="tile"><div class="img">▨</div></div><div class="tile"><div class="img">▨</div></div></div></div>
+  </div>
+</div>
+
+<!-- 5 기준 이미지 생성 중 -->
+<h2 id="s5">5. 착용 화면 — 기준 이미지 생성 중 (~30초) <a class="top" href="#">↑</a></h2>
+<p class="fcap">U1 처방: 썸네일 자리에 진행 막대. <b>2px 막대 하나 + 한 줄 라벨</b>이 전부 — 스피너·스켈레톤 없음.</p>
+<div class="frame desk">
+  <div class="hdr"><span class="brand">MTM</span><span style="font-size:11px;color:var(--ink3)">내 정보 · 로그아웃</span></div>
+  <div class="zone">
+    <div class="zlabel">Z1 · 내 사진</div>
+    <div class="thumbs">
+      <div class="box thumb" style="flex-direction:column;gap:4px">
+        <div class="pb" style="width:48px"><i></i></div><span style="font-size:9px">만드는 중</span></div>
+      <div class="box thumb dash">+ 올리기</div>
+    </div>
+    <div class="pblabel">기준 이미지를 만드는 중</div>
+  </div>
+  <div class="split">
+    <div class="col-main"><div class="zlabel">Z2</div>
+      <div class="empty" style="height:300px;display:flex;align-items:center;justify-content:center">
+        기준 이미지가 만들어지면 여기에 표시됩니다</div></div>
+    <div class="col-side dim"><div class="zlabel">Z3</div>
+      <div class="grid2"><div class="tile"><div class="img">▨</div></div><div class="tile"><div class="img">▨</div></div></div></div>
+  </div>
+</div>
+
+<!-- 6 제품 미선택 -->
+<h2 id="s6">6. 착용 화면 — 제품 미선택 <a class="top" href="#">↑</a></h2>
+<p class="fcap">기준 이미지는 준비됐고 제품만 안 골랐을 때. 빈 상태가 <b>다음 행동을 가리킨다.</b></p>
+<div class="frame desk">
+  <div class="hdr"><span class="brand">MTM</span><span style="font-size:11px;color:var(--ink3)">내 정보 · 로그아웃</span></div>
+  <div class="zone"><div class="zlabel">Z1 · 내 사진</div>
+    <div class="thumbs"><div class="box thumb sel">▨ 선택됨</div><div class="box thumb">▨</div><div class="box thumb dash">+</div></div></div>
+  <div class="split">
+    <div class="col-main"><div class="zlabel">Z2</div>
+      <div class="empty" style="height:300px;display:flex;align-items:center;justify-content:center">
+        오른쪽에서 제품을 골라보세요<br><span style="font-size:10px">(모바일: 아래에서)</span></div></div>
+    <div class="col-side"><div class="zlabel">Z3 · 제품 128</div>
+      <div class="grid2">
+        <div class="tile"><div class="img">▨</div><div class="nm">Aren Zip Hobo</div><div class="pr">$1,250</div></div>
+        <div class="tile"><div class="img">▨</div><div class="nm">Stark Backpack</div><div class="pr">$890</div></div>
+        <div class="tile"><div class="img">▨</div><div class="nm">Liz Shopper</div><div class="pr">$1,050</div></div>
+        <div class="tile"><div class="img">▨</div><div class="nm">Himmel Tote</div><div class="pr">$760</div></div>
+      </div></div>
+  </div>
+</div>
+
+<!-- 7 착용 이미지 생성 중 -->
+<h2 id="s7">7. 착용 화면 — 착용 이미지 생성 중 (~15초) <a class="top" href="#">↑</a></h2>
+<p class="fcap">U3 처방: <b>Z3는 잠기지 않는다.</b> 생성 중에 다른 제품을 누르면 요청이 교체된다 — 비교 흐름(F3)이 끊기지 않게.</p>
+<div class="frame desk">
+  <div class="hdr"><span class="brand">MTM</span><span style="font-size:11px;color:var(--ink3)">내 정보 · 로그아웃</span></div>
+  <div class="zone"><div class="zlabel">Z1</div>
+    <div class="thumbs"><div class="box thumb sel">▨ 선택됨</div><div class="box thumb">▨</div><div class="box thumb dash">+</div></div></div>
+  <div class="split">
+    <div class="col-main"><div class="zlabel">Z2</div>
+      <div class="box stage" style="flex-direction:column;gap:10px">
+        <div class="pb" style="width:60%"><i></i></div>
+        <div class="pblabel">착용 이미지를 만드는 중</div></div></div>
+    <div class="col-side"><div class="zlabel">Z3 · 조작 가능 (흐리지 않음)</div>
+      <div class="grid2">
+        <div class="tile"><div class="img">▨</div><div class="nm">Aren Zip Hobo</div><div class="pr">$1,250</div></div>
+        <div class="tile"><div class="img">▨</div><div class="nm">Stark Backpack</div><div class="pr">$890</div></div>
+        <div class="tile"><div class="img">▨</div><div class="nm">Liz Shopper</div><div class="pr">$1,050</div></div>
+        <div class="tile"><div class="img">▨</div><div class="nm">Himmel Tote</div><div class="pr">$760</div></div>
+      </div></div>
+  </div>
+</div>
+
+<!-- 8 실패 -->
+<h2 id="s8">8. 착용 화면 — 생성 실패 <a class="top" href="#">↑</a></h2>
+<p class="fcap">U8 처방: 막다른 길을 만들지 않는다. <b>다음 행동 버튼이 반드시 있다.</b></p>
+<div class="frame desk">
+  <div class="hdr"><span class="brand">MTM</span><span style="font-size:11px;color:var(--ink3)">내 정보 · 로그아웃</span></div>
+  <div class="zone"><div class="zlabel">Z1</div>
+    <div class="thumbs"><div class="box thumb sel">▨ 선택됨</div><div class="box thumb">▨</div><div class="box thumb dash">+</div></div></div>
+  <div class="split">
+    <div class="col-main"><div class="zlabel">Z2</div>
+      <div class="empty" style="height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px">
+        <div>착용 이미지를 만들지 못했습니다<br><span style="font-size:11px">잠시 후 다시 시도해 주세요</span></div>
+        <span class="btn">다시 시도</span></div></div>
+    <div class="col-side"><div class="zlabel">Z3</div>
+      <div class="grid2"><div class="tile"><div class="img">▨</div><div class="nm">Aren Zip Hobo</div></div>
+      <div class="tile"><div class="img">▨</div><div class="nm">Stark Backpack</div></div></div></div>
+  </div>
+</div>
+
+<!-- 9 모바일 -->
+<h2 id="s9">9. 착용 화면 — 모바일 (C안 · 1열) <a class="top" href="#">↑</a></h2>
+<p class="fcap">U7 처방: 제품 목록이 <b>가로 스크롤 한 줄</b>. 세로 그리드면 착용 이미지가 화면 밖으로 밀린다.</p>
+<div class="row">
+<div class="frame mob">
+  <div class="hdr"><span class="brand">MTM</span><span style="font-size:11px;color:var(--ink3)">내 정보</span></div>
+  <div class="zone">
+    <div class="zlabel">내 사진 (가로 스크롤)</div>
+    <div class="thumbs"><div class="box thumb sel">▨</div><div class="box thumb">▨</div><div class="box thumb">▨</div><div class="box thumb dash">+</div></div>
+  </div>
+  <div class="zone">
+    <div class="box stage sm">▨ 착용 이미지</div>
+    <div style="margin-top:10px;font-size:12px">Aren Zip Hobo in Visetos</div>
+    <div style="margin:6px 0"><span class="tag">한쪽 어깨</span> <span class="tag">14.2 × 11.8 IN</span></div>
+    <span class="btn">다시 만들기</span> <span class="iconbtn">×</span>
+  </div>
+  <div class="zone">
+    <div class="zlabel">제품 128 · 가로 스크롤 →</div>
+    <div class="hscroll">
+      <div class="tile"><div class="img" style="height:88px">▨</div><div class="nm">Aren Hobo</div><div class="pr">$1,250</div></div>
+      <div class="tile"><div class="img" style="height:88px">▨</div><div class="nm">Stark</div><div class="pr">$890</div></div>
+      <div class="tile"><div class="img" style="height:88px">▨</div><div class="nm">Liz</div><div class="pr">$1,050</div></div>
+      <div class="tile"><div class="img" style="height:88px">▨</div><div class="nm">Himmel</div><div class="pr">$760</div></div>
+    </div>
+  </div>
+</div>
+<div style="flex:1;min-width:260px">
+  <h3>접힘 규칙</h3>
+  <p class="note">≥1200px — 2열, Z3 고정 300px<br>
+  768~1199px — Z3를 280px로 좁히고 타일 1열<br>
+  &lt;768px — <b>세로 1열</b>. Z3만 가로 스크롤로 바뀜</p>
+  <h3>왜 가로 스크롤인가</h3>
+  <p class="note">엄지로 제품을 넘기면서 <b>결과를 계속 볼 수 있어야</b> 한다. 세로 그리드면 제품을 고르는 순간 착용 이미지가 화면 위로 사라진다.</p>
+</div>
+</div>
+
+<!-- 10 사진첩 -->
+<h2 id="s10">10. 사진첩 <a class="top" href="#">↑</a></h2>
+<p class="fcap">U11 처방: <b>원본과 기준 이미지를 나란히</b> — "내 얼굴이 맞나"는 대조해야 판정된다. U2 처방: 다시 만들기 전에 경고.</p>
+<div class="frame desk">
+  <div class="hdr"><span class="brand">MTM</span><span style="font-size:11px;color:var(--ink3)">내 정보 · 로그아웃</span></div>
+  <div class="zone">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:18px;font-weight:600">내 사진</div><span class="btn">+ 사진 올리기</span></div>
+  </div>
+  <div class="zone"><div class="grid2" style="gap:18px">
+    <div style="border:1px solid var(--line2);padding:12px">
+      <div style="display:flex;gap:10px">
+        <div class="box" style="flex:1;height:180px">▨ 원본 사진</div>
+        <div class="box" style="flex:1;height:180px">▨ 기준 이미지</div></div>
+      <p class="note">2026-08-05 올림 · 착용 이미지 4장</p>
+      <div style="margin-top:8px"><span class="btn">기준 이미지 다시 만들기</span>
+        <span class="btn ghost">삭제</span><span class="warn">⚠동작경계 B1</span></div>
+      <div class="err" style="margin-top:10px">다시 만들면 이 사진으로 만든 <b>착용 이미지 4장이 함께 삭제됩니다.</b><br>
+        <span style="font-size:11px">↑ 누르기 전에 뜨는 확인 (H5 에러 예방 · U2)</span></div>
+    </div>
+    <div style="border:1px solid var(--line2);padding:12px">
+      <div style="display:flex;gap:10px">
+        <div class="box" style="flex:1;height:180px">▨ 원본 사진</div>
+        <div class="box dash" style="flex:1;height:180px;flex-direction:column;gap:8px">
+          <div class="pb" style="width:70%"><i></i></div><span style="font-size:10px">기준 이미지를 만드는 중</span></div></div>
+      <p class="note">방금 올림</p>
+    </div>
+    <div style="border:1px solid var(--line2);padding:12px">
+      <div style="display:flex;gap:10px">
+        <div class="box" style="flex:1;height:180px">▨ 원본 사진</div>
+        <div class="empty" style="flex:1;height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:10px">
+          만들지 못했습니다<span class="btn">다시 시도</span></div></div>
+      <p class="note">2026-08-04 올림</p>
+    </div>
+  </div></div>
+</div>
+
+<!-- 11 제품 목록 -->
+<h2 id="s11">11. 제품 목록 <a class="top" href="#">↑</a></h2>
+<p class="fcap">U6 처방: 필터가 없으므로 <b>착용 방식 태그</b>가 훑기의 단서다. (검색·필터·정렬은 PRD 범위 밖 — 만들지 않음)</p>
+<div class="frame desk">
+  <div class="hdr"><span class="brand">MTM</span><span style="font-size:11px;color:var(--ink3)">내 정보 · 로그아웃</span></div>
+  <div class="zone">
+    <div style="display:flex;justify-content:space-between;align-items:baseline">
+      <div style="font-size:18px;font-weight:600">제품</div><span style="font-size:12px;color:var(--ink3)">128개</span></div>
+  </div>
+  <div class="zone"><div class="grid4">
+    <div class="tile"><div class="img">▨</div><div class="nm">Aren Zip Hobo in Visetos</div>
+      <div style="margin:4px 0"><span class="tag">한쪽 어깨</span></div><div class="pr">$1,250</div></div>
+    <div class="tile"><div class="img">▨</div><div class="nm">아주 긴 한국어 제품명이 들어왔을 때 한 줄로 잘리는지 보는 타일</div>
+      <div style="margin:4px 0"><span class="tag">크로스백</span></div><div class="pr">$980</div></div>
+    <div class="tile"><div class="img">▨</div><div class="nm">Stark Side Studs Backpack</div>
+      <div style="margin:4px 0"><span class="tag">한쪽 어깨</span></div><div class="pr">$890</div></div>
+    <div class="tile"><div class="img">▨</div><div class="nm">Liz Shopper</div>
+      <div style="margin:4px 0"><span class="tag">손에 듦</span></div><div class="pr">$1,050</div></div>
+    <div class="tile"><div class="img">▨</div><div class="nm">Himmel Tote</div>
+      <div style="margin:4px 0"><span class="tag">한쪽 어깨</span></div><div class="pr">$760</div></div>
+    <div class="tile"><div class="img">▨</div><div class="nm">Aren Belt Bag</div>
+      <div style="margin:4px 0"><span class="tag">허리</span></div><div class="pr">$540</div></div>
+    <div class="tile"><div class="img">▨</div><div class="nm">Trolley Carry-On</div>
+      <div style="margin:4px 0"><span class="tag">옆에 세움</span></div><div class="pr">$1,890</div></div>
+    <div class="tile"><div class="img">▨</div><div class="nm">Klara Hobo</div>
+      <div style="margin:4px 0"><span class="tag">한쪽 어깨</span></div><div class="pr">$1,120</div></div>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;justify-content:center;margin-top:22px;padding-top:16px;border-top:1px solid var(--line2)">
+    <span class="btn ghost">← 이전</span>
+    <span style="font-size:12px;letter-spacing:1px;padding:0 2px"><b style="border-bottom:1px solid var(--ink)">1</b></span>
+    <span style="font-size:12px;letter-spacing:1px;color:var(--ink3);padding:0 2px">2</span>
+    <span style="font-size:12px;letter-spacing:1px;color:var(--ink3);padding:0 2px">3</span>
+    <span style="font-size:12px;letter-spacing:1px;color:var(--ink3);padding:0 2px">4</span>
+    <span class="btn">다음 →</span>
+  </div>
+  <p class="note" style="text-align:center">32개씩 · 4페이지 (128 ÷ 32 = 딱 떨어져 마지막 페이지가 비지 않는다)</p>
+  <p class="note">새 컴포넌트를 만들지 않았다 — 이전/다음은 <b>OutlineButton</b>, 번호는 <b>label 타이포</b>. 현재 페이지는 색이 아니라 <b>굵기 + 밑줄</b>로 표시(DESIGN.md: UI에 색을 쓰지 않는다)</p>
+  <p class="note">⚠ <b>착용 화면 Z3에는 페이지네이션을 넣지 않는다</b> — 거기는 세로 스크롤 그대로. 제품을 연달아 눌러보는 비교 흐름에서 페이지를 넘기게 하면 흐름이 끊긴다</p>
+  <p class="note"><b>타일 클릭 → 제품 상세로 이동.</b> ※ 착용 화면 우측 Z3의 타일은 <b>다르게 동작한다</b> — 상세로 가지 않고 그 자리에서 착용 이미지를 만든다(비교 흐름 F3을 지키려고 의도한 차이)</p>
+  </div>
+</div>
+
+<!-- 12 제품 상세 -->
+<h2 id="s12">12. 제품 상세 <span class="warn">⚠동작경계 B3</span> <a class="top" href="#">↑</a></h2>
+<p class="fcap">U13 처방. <b>크기를 [입어보기] 바로 위에</b> 둔다 — 숫자를 본 직후 "그럼 내 몸엔?"으로 넘어가게. 치수는 인치·cm 나란히.</p>
+<div class="frame desk">
+  <div class="hdr"><span class="brand">MTM</span><span style="font-size:11px;color:var(--ink3)">내 정보 · 로그아웃</span></div>
+  <div class="zone" style="padding:8px 14px"><span style="font-size:12px;color:var(--ink3)">← 제품 목록</span></div>
+  <div class="split" style="min-height:460px">
+    <div class="col-main">
+      <div class="box" style="height:340px">▨ 제품 컷 (대)</div>
+      <div class="thumbs" style="margin-top:10px">
+        <div class="box thumb sel" style="width:52px;height:52px">▨</div>
+        <div class="box thumb" style="width:52px;height:52px">▨</div>
+        <div class="box thumb" style="width:52px;height:52px">▨</div>
+        <div class="box thumb" style="width:52px;height:52px">▨</div>
+        <div class="box thumb" style="width:52px;height:52px">▨</div>
+        <div class="box thumb" style="width:52px;height:52px">▨</div>
+      </div>
+      <p class="note">썸네일 클릭으로 전환 · 컷이 1장뿐이면 이 줄을 감춘다</p>
+    </div>
+    <div class="col-side" style="width:380px">
+      <div style="font-size:18px;font-weight:600">Aren Zip Hobo in Visetos</div>
+      <div style="font-size:13px;color:var(--ink2);margin-top:4px">$1,250</div>
+      <div style="margin:10px 0"><span class="tag">한쪽 어깨</span></div>
+
+      <h3 style="margin-top:22px">크기</h3>
+      <table style="font-size:12px;color:var(--ink2);border-collapse:collapse">
+        <tr><td style="padding:2px 16px 2px 0">가로</td><td>14.2 in <span style="color:var(--ink3)">(36.1 cm)</span></td></tr>
+        <tr><td style="padding:2px 16px 2px 0">세로</td><td>11.8 in <span style="color:var(--ink3)">(30.0 cm)</span></td></tr>
+        <tr><td style="padding:2px 16px 2px 0">깊이</td><td>5.9 in <span style="color:var(--ink3)">(15.0 cm)</span></td></tr>
+        <tr><td style="padding:2px 16px 2px 0">스트랩</td><td>45.1 ~ 57.7 in</td></tr>
+      </table>
+      <p class="note">스트랩 데이터가 없는 제품(128개 중 37개)은 그 줄만 생략</p>
+
+      <div style="margin-top:18px"><span class="btn">이 제품 입어보기</span></div>
+      <p class="note">모바일에서는 이 버튼이 화면 하단에 고정</p>
+
+      <h3 style="margin-top:26px">상세</h3>
+      <p style="font-size:12px;color:var(--ink2);margin:0">
+        · 조절 가능한 가죽 숄더 스트랩<br>
+        · 전면 지퍼 포켓<br>
+        · 로고 브래스 플레이트<br>
+        · 지퍼 클로저 · 내부 지퍼 포켓<br>
+        · 본체: Visetos 모노그램 캔버스<br>
+        · 트림: 나파 가죽 · 24K 골드 도금 하드웨어<br>
+        · … (자르지 않고 흐름 · 최대 폭 60자)</p>
+    </div>
+  </div>
+</div>
+<p class="fcap" style="margin-top:10px"><b>상태</b> — 로딩: ProgressBar 한 줄 / 없는 SKU: EmptyState + [제품 목록으로] / 컷 1장: 썸네일 줄 감춤 / 스트랩 결측: 그 줄만 생략</p>
+<div class="row">
+<div class="frame mob">
+  <div class="hdr"><span class="brand">MTM</span><span style="font-size:11px;color:var(--ink3)">내 정보</span></div>
+  <div class="zone" style="padding:8px 14px"><span style="font-size:11px;color:var(--ink3)">← 제품 목록</span></div>
+  <div class="zone">
+    <div class="box" style="height:200px">▨ 제품 컷</div>
+    <div class="thumbs" style="margin-top:8px">
+      <div class="box thumb sel" style="width:40px;height:40px">▨</div>
+      <div class="box thumb" style="width:40px;height:40px">▨</div>
+      <div class="box thumb" style="width:40px;height:40px">▨</div>
+      <div class="box thumb" style="width:40px;height:40px">▨</div></div>
+    <div style="font-size:15px;font-weight:600;margin-top:14px">Aren Zip Hobo in Visetos</div>
+    <div style="font-size:12px;color:var(--ink2)">$1,250</div>
+    <div style="margin:8px 0"><span class="tag">한쪽 어깨</span></div>
+    <h3>크기</h3>
+    <p style="font-size:12px;color:var(--ink2);margin:0">가로 14.2 in (36.1 cm) · 세로 11.8 in (30.0 cm)<br>깊이 5.9 in (15.0 cm) · 스트랩 45.1~57.7 in</p>
+    <h3>상세</h3>
+    <p style="font-size:12px;color:var(--ink2);margin:0">· 조절 가능한 가죽 숄더 스트랩<br>· 전면 지퍼 포켓<br>· …</p>
+  </div>
+  <div class="zone" style="border-top:1px solid var(--line);background:#fff;position:sticky;bottom:0">
+    <span class="btn" style="display:block;text-align:center">이 제품 입어보기</span>
+    <p class="note" style="text-align:center">↑ 하단 고정</p>
+  </div>
+</div>
+<div style="flex:1;min-width:260px">
+  <h3>왜 크기가 버튼 바로 위인가</h3>
+  <p class="note">이 서비스가 파는 것은 <b>크기 감</b>이다. 숫자를 본 직후에 "그럼 내 몸엔?"으로 넘어가는 자리가 여기다. 상세 설명을 그 사이에 끼우면 흐름이 끊긴다.</p>
+  <h3>⚠ 왜 동작경계인가</h3>
+  <p class="note">슬라이스 1(BE #3)의 완료 조건은 목록 API가 <b>SKU·이름·가격·대표 제품 컷</b>을 주는 것까지다. 치수·설명·컷 여러 장을 주는 <b>상세 조회 엔드포인트가 없다.</b><br>
+  다만 데이터는 이미 DB에 적재되므로 <b>엔드포인트만 늘어난다.</b></p>
+</div>
+</div>
+
+<h2>미배치 확인</h2>
+<p class="sub">DESIGN.md 컴포넌트 13개가 모두 어딘가에 배치됐습니다 — PageTitle · SectionTitle · ProductTile · ProductPrice · LookStage · PhotoThumb · OutlineButton · IconButton · ProgressBar · FieldInput · FieldError · CarryModeTag · EmptyState. <b>이번 패스 미사용 컴포넌트는 없습니다.</b></p>
+
+</div></body></html>
