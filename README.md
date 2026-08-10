@@ -1,87 +1,57 @@
-# Welcome to React Router!
+# MTM Frontend
 
-A modern, production-ready template for building full-stack React applications using React Router.
+MCM 제품을 **자기 사진 위에서** 입어보는 서비스의 프런트엔드.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+전신 사진을 한 번 올려 **기준 이미지**로 변환해 두면, 이후 제품을 고를 때마다 그 위에 제품이
+올라간 **착용 이미지**를 만들어 보여준다.
 
-## Features
+## 기술 스택
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+| 항목 | 버전 |
+|---|---|
+| React | 19 |
+| React Router (framework mode, SSR) | 8 |
+| Vite | 8 |
+| Tailwind CSS | 4 |
+| TypeScript (strict) | 5.9 |
 
-## Getting Started
+## 시작하기
 
-### Installation
-
-Install the dependencies:
+Node.js 20 이상이 필요하다.
 
 ```bash
 npm install
-```
-
-### Development
-
-Start the development server with HMR:
-
-```bash
 npm run dev
 ```
 
-Your application will be available at `http://localhost:5173`.
+`http://localhost:5173` 에서 열린다.
 
-## Building for Production
+## 스크립트
 
-Create a production build:
+| 명령 | 하는 일 |
+|---|---|
+| `npm run dev` | 개발 서버 (HMR) |
+| `npm run build` | 프로덕션 빌드 → `build/` |
+| `npm start` | 빌드 결과물 서빙 |
+| `npm run typecheck` | 라우트 타입 생성 후 `tsc` 검사 |
 
-```bash
-npm run build
-```
-
-## Deployment
-
-### Docker Deployment
-
-To build and run using Docker:
-
-```bash
-docker build -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
-```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
+## 디렉터리
 
 ```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
+app/
+├── root.tsx        전역 레이아웃 · ErrorBoundary
+├── routes.ts       라우트 정의
+├── routes/         라우트 모듈
+└── app.css         Tailwind 진입점 · 테마 토큰
+docs/design/        와이어프레임 · 화면 설계
+public/             정적 자산
 ```
 
-## Styling
+경로 별칭 `~/*` 는 `app/*` 를 가리킨다.
 
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
+## 설계 문서
 
----
+- [와이어프레임](docs/design/WIREFRAME.md) — 화면 구조 · 라우트 목록 · 상태 · UX 감사
+- [화면 미리보기](docs/design/previews/wireframe-all.html) — 모든 화면·상태를 한 파일에
 
-Built with ❤️ using React Router.
+라우트 구성과 각 화면의 동작은 와이어프레임 문서를 기준으로 한다.
