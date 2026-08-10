@@ -17,7 +17,8 @@ MCM 제품을 **자기 사진 위에서** 입어보는 서비스의 프런트엔
 
 ## 시작하기
 
-Node.js 20 이상이 필요하다.
+Node.js **22.22.0 이상**이 필요하다 (React Router 8 요구 사항). 낮은 버전에서는
+`react-router` 실행 시 경고가 뜬다.
 
 ```bash
 npm install
