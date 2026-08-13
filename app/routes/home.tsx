@@ -70,7 +70,6 @@ export default function Home() {
         ) : null}
         {!hasPhoto ? (
           <EmptyState
-            className="w-full py-[30px]"
             action={<OutlineButton type="button">사진 올리기</OutlineButton>}
           >
             아직 올린 사진이 없습니다
@@ -123,7 +122,7 @@ function LookStage({ state }: { state: LookState }) {
   // 기준 이미지가 아직 없으므로 제품명·태그·액션을 감춘다
   if (state === "generating-base") {
     return (
-      <EmptyState className="w-full flex-1">
+      <EmptyState className="flex-1">
         기준 이미지가 만들어지면 여기에 표시됩니다
       </EmptyState>
     );
@@ -131,7 +130,7 @@ function LookStage({ state }: { state: LookState }) {
 
   if (state === "no-product") {
     return (
-      <EmptyState className="w-full flex-1">
+      <EmptyState className="flex-1">
         <p>오른쪽에서 제품을 골라보세요</p>
         <p>(모바일: 아래에서)</p>
       </EmptyState>
@@ -141,7 +140,7 @@ function LookStage({ state }: { state: LookState }) {
   if (state === "failed") {
     return (
       <EmptyState
-        className="w-full flex-1"
+        className="flex-1"
         action={<OutlineButton type="button">다시 시도</OutlineButton>}
       >
         <p>착용 이미지를 만들지 못했습니다</p>

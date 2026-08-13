@@ -33,7 +33,7 @@ export function PhotoUploadSlot({ onClick }: { onClick?: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="flex size-[64px] shrink-0 flex-col items-center justify-center border border-dashed border-border-default bg-surface-muted text-[11px] text-text-tertiary focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-border-emphasis"
+      className="flex size-[64px] shrink-0 flex-col items-center justify-center border border-dashed border-border-strong bg-surface-track text-[11px] text-text-tertiary focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-border-emphasis"
     >
       + 올리기
     </button>
