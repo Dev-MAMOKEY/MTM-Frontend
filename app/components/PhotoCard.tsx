@@ -34,6 +34,7 @@ export function PhotoCard({
                 value={70}
                 label="기준 이미지를 만드는 중"
                 width={120}
+                className="items-center gap-2"
               />
             ) : (
               <>

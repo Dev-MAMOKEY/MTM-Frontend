@@ -19,19 +19,26 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-/** Figma 시안이 그린 착용 화면의 다섯 가지 상태. */
+/** Figma 시안이 그린 착용 화면의 여섯 가지 상태. */
 type LookState =
   | "ready" // 3-2  정상
   | "no-photo" // 5-2  사진 없음
+  | "generating-base" // 5-69 기준 이미지 생성 중
   | "no-product" // 6-2  제품 미선택
   | "generating" // 6-65 착용 이미지 생성 중
   | "failed"; // 7-2  생성 실패
 
 export default function Home() {
-  // 생성 요청은 슬라이스 6에서 붙인다. 지금은 상태만 그린다.
+  // 생성 요청은 슬라이스 5·6에서 붙인다. 지금은 상태만 그린다.
   const [state] = useState<LookState>("ready");
 
   const hasPhoto = state !== "no-photo";
+
+  // 흐림은 존마다 다르다. 착용 이미지 생성 중에는 Z3를 흐리지 않는다 —
+  // 다른 제품을 눌러 요청을 교체할 수 있어야 비교 흐름이 끊기지 않는다.
+  // 반대로 기준 이미지가 없으면 착용 이미지를 만들 수 없으므로 Z3를 흐린다.
+  const dimStage = state === "no-photo";
+  const dimProducts = state === "no-photo" || state === "generating-base";
 
   return (
     <div className="flex h-screen flex-col bg-white">
@@ -52,30 +59,43 @@ export default function Home() {
             <PhotoThumb label="사진 3" />
             <PhotoUploadSlot />
           </div>
-        ) : (
+        ) : null}
+        {state === "generating-base" ? (
+          <ProgressBar
+            value={42}
+            label="기준 이미지를 만드는 중"
+            width={240}
+            className="items-start gap-[6px]"
+          />
+        ) : null}
+        {!hasPhoto ? (
           <EmptyState
             className="w-full py-[30px]"
             action={<OutlineButton type="button">사진 올리기</OutlineButton>}
           >
             아직 올린 사진이 없습니다
           </EmptyState>
-        )}
+        ) : null}
       </section>
 
-      {/* Z2 + Z3 — 사진이 없으면 통째로 흐려 길을 하나만 남긴다 */}
-      <div
-        className={
-          "flex w-full flex-1 items-start overflow-hidden " +
-          (hasPhoto ? "" : "opacity-35")
-        }
-      >
+      <div className="flex w-full flex-1 items-start overflow-hidden">
         {/* Z2 · LookStage */}
-        <section className="flex h-full min-w-px flex-1 flex-col gap-[10px] border-r border-solid border-line p-5">
+        <section
+          className={
+            "flex h-full min-w-px flex-1 flex-col gap-[10px] border-r border-solid border-line p-5 " +
+            (dimStage ? "opacity-35" : "")
+          }
+        >
           <LookStage state={state} />
         </section>
 
-        {/* Z3 · 제품 — 생성 중에도 흐려지지 않고 조작 가능하다 */}
-        <section className="flex h-full w-[300px] shrink-0 flex-col gap-[10px] overflow-y-auto p-5">
+        {/* Z3 · 제품 */}
+        <section
+          className={
+            "flex h-full w-[300px] shrink-0 flex-col gap-[10px] overflow-y-auto p-5 " +
+            (dimProducts ? "opacity-35" : "")
+          }
+        >
           <div className="flex w-full items-start justify-between text-ink-subtle">
             <h2 className="text-[10px] font-medium tracking-[1px]">
               제품 {totalProductCount}
@@ -100,6 +120,15 @@ export default function Home() {
 }
 
 function LookStage({ state }: { state: LookState }) {
+  // 기준 이미지가 아직 없으므로 제품명·태그·액션을 감춘다
+  if (state === "generating-base") {
+    return (
+      <EmptyState className="w-full flex-1">
+        기준 이미지가 만들어지면 여기에 표시됩니다
+      </EmptyState>
+    );
+  }
+
   if (state === "no-product") {
     return (
       <EmptyState className="w-full flex-1">

@@ -6,13 +6,16 @@ export function ProgressBar({
   value,
   label,
   width = 300,
+  className = "items-center gap-[10px]",
 }: {
   value: number;
   label: string;
   width?: number;
+  /** 자리마다 정렬·간격이 다르다 — Z1 좌측 6px · Z2 중앙 10px · 사진첩 중앙 8px */
+  className?: string;
 }) {
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div className={"flex flex-col " + className}>
       <div
         role="progressbar"
         aria-valuenow={value}
