@@ -5,5 +5,6 @@ export default [
   route("login", "routes/login.tsx"),
   route("profile", "routes/profile.tsx"),
   route("photos", "routes/photos.tsx"),
+  route("products", "routes/products._index.tsx"),
   route("products/:sku", "routes/products.$sku.tsx"),
 ] satisfies RouteConfig;
