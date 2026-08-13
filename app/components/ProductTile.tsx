@@ -32,13 +32,13 @@ export function ProductTile({
       type="button"
       onClick={onClick}
       style={{ width }}
-      className="flex shrink-0 flex-col gap-[6px] text-left focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-ink"
+      className="flex shrink-0 flex-col gap-[6px] text-left focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-border-emphasis"
     >
       <span
         style={{ width, height }}
-        className="border border-solid border-line bg-track"
+        className="border border-solid border-border-default bg-surface-track"
       />
-      <span style={{ width }} className="truncate text-[12px] text-ink">
+      <span style={{ width }} className="truncate text-caption text-text-primary">
         {name}
       </span>
       {carryMode ? (
@@ -46,7 +46,7 @@ export function ProductTile({
           <CarryModeTag>{carryMode}</CarryModeTag>
         </span>
       ) : null}
-      <span className="text-[12px] text-ink-muted">{price}</span>
+      <span className="text-caption text-text-secondary">{price}</span>
     </button>
   );
 }

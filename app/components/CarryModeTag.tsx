@@ -4,7 +4,7 @@
  */
 export function CarryModeTag({ children }: { children: React.ReactNode }) {
   return (
-    <span className="border border-solid border-line-strong bg-white px-2 py-[3px] text-[10px] tracking-[1px] text-ink-muted">
+    <span className="border border-solid border-border-strong bg-surface-base px-2 py-[3px] text-[10px] tracking-[1px] text-text-secondary">
       {children}
     </span>
   );

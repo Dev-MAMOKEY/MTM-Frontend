@@ -19,7 +19,7 @@ export function FieldInput({
 
   return (
     <div className="flex w-full flex-col gap-2">
-      <label htmlFor={inputId} className="text-[13px] text-ink-subtle">
+      <label htmlFor={inputId} className="text-body text-text-tertiary">
         {label}
       </label>
       <input
@@ -28,8 +28,8 @@ export function FieldInput({
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? errorId : undefined}
         className={
-          "w-full border-b border-ink bg-transparent pb-1 text-[13px] text-ink " +
-          "focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-ink " +
+          "w-full border-b border-border-emphasis bg-transparent pb-1 text-body text-text-primary " +
+          "focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-border-emphasis " +
           className
         }
       />

@@ -15,7 +15,7 @@ export function EmptyState({
   return (
     <div
       className={
-        "flex flex-col items-center justify-center gap-[14px] border border-dashed border-line-strong bg-surface-muted text-center text-[12px] text-ink-subtle " +
+        "flex flex-col items-center justify-center gap-[14px] border border-dashed border-border-strong bg-surface-muted text-center text-caption text-text-tertiary " +
         className
       }
     >

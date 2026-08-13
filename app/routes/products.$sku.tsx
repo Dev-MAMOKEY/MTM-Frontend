@@ -37,18 +37,18 @@ export default function ProductDetail() {
   const [selectedCut, setSelectedCut] = useState(0);
 
   return (
-    <div className="flex min-h-screen flex-col bg-white">
+    <div className="flex min-h-screen flex-col bg-surface-base">
       <Header />
-      <div className="w-full border-b border-solid border-line px-6 py-[10px]">
-        <Link to="/products" className="text-[12px] text-ink-subtle">
+      <div className="w-full border-b border-solid border-border-default px-6 py-[10px]">
+        <Link to="/products" className="text-caption text-text-tertiary">
           ← 제품 목록
         </Link>
       </div>
 
       <div className="flex w-full flex-1 items-start">
         {/* 좌 — 제품 컷 */}
-        <div className="flex h-full min-w-px flex-1 flex-col gap-3 border-r border-solid border-line px-10 py-7">
-          <div className="flex h-[560px] w-full flex-col items-center justify-center border border-solid border-line bg-track text-[11px] text-ink-subtle">
+        <div className="flex h-full min-w-px flex-1 flex-col gap-3 border-r border-solid border-border-default px-10 py-7">
+          <div className="flex h-[560px] w-full flex-col items-center justify-center border border-solid border-border-default bg-surface-track text-[11px] text-text-tertiary">
             제품 컷
           </div>
           {/* 컷이 1장뿐이면 이 줄을 감춘다 — 빈 줄을 남기지 않는다 */}
@@ -62,10 +62,10 @@ export default function ProductDetail() {
                   aria-pressed={selectedCut === i}
                   onClick={() => setSelectedCut(i)}
                   className={
-                    "size-[52px] bg-track focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-ink " +
+                    "size-[52px] bg-surface-track focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-border-emphasis " +
                     (selectedCut === i
-                      ? "border-2 border-solid border-ink"
-                      : "border border-solid border-line")
+                      ? "border-2 border-solid border-border-emphasis"
+                      : "border border-solid border-border-default")
                   }
                 />
               ))}
@@ -75,18 +75,18 @@ export default function ProductDetail() {
 
         {/* 우 — 스펙. 크기를 입어보기 버튼 바로 위에 둔다 */}
         <div className="flex h-full w-[380px] shrink-0 flex-col gap-[10px] p-7">
-          <h1 className="text-[20px] font-bold text-ink">{detail.name}</h1>
-          <p className="text-[13px] text-ink-muted">{detail.price}</p>
+          <h1 className="text-[20px] font-bold text-text-primary">{detail.name}</h1>
+          <p className="text-body text-text-secondary">{detail.price}</p>
           <div>
             <CarryModeTag>{detail.carryMode}</CarryModeTag>
           </div>
 
           <div className="h-[10px]" />
-          <h2 className="text-[14px] font-medium text-ink-muted">크기</h2>
+          <h2 className="text-[14px] font-medium text-text-secondary">크기</h2>
           {detail.dimensions.map((row) => (
-            <div key={row.label} className="flex gap-4 text-[12px]">
-              <span className="w-[50px] text-ink-subtle">{row.label}</span>
-              <span className="whitespace-pre text-ink-muted">{row.value}</span>
+            <div key={row.label} className="flex gap-4 text-caption">
+              <span className="w-[50px] text-text-tertiary">{row.label}</span>
+              <span className="whitespace-pre text-text-secondary">{row.value}</span>
             </div>
           ))}
 
@@ -96,8 +96,8 @@ export default function ProductDetail() {
           </div>
 
           <div className="h-3" />
-          <h2 className="text-[14px] font-medium text-ink-muted">상세</h2>
-          <ul className="text-[12px] text-ink-muted">
+          <h2 className="text-[14px] font-medium text-text-secondary">상세</h2>
+          <ul className="text-caption text-text-secondary">
             {detail.details.map((line) => (
               <li key={line}>· {line}</li>
             ))}

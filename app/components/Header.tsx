@@ -6,11 +6,11 @@ import { Link } from "react-router";
  */
 export function Header() {
   return (
-    <header className="flex items-center justify-between border-b border-solid border-line-strong bg-white px-6 py-[14px]">
-      <Link to="/" className="text-[15px] font-bold tracking-[1px] text-ink">
+    <header className="flex items-center justify-between border-b border-solid border-border-strong bg-surface-base px-6 py-[14px]">
+      <Link to="/" className="text-[15px] font-bold tracking-[1px] text-text-primary">
         MTM
       </Link>
-      <nav className="flex items-center gap-3 text-[11px] text-ink-subtle">
+      <nav className="flex items-center gap-3 text-[11px] text-text-tertiary">
         <Link to="/profile">내 정보</Link>
         {/* 로그아웃 동작은 엔드포인트 미정(⚠B2) — 자리만 둔다 */}
         <span>로그아웃</span>

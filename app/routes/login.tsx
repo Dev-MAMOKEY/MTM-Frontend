@@ -20,7 +20,7 @@ export default function Login() {
 
   return (
     <main className="mx-auto flex w-[360px] flex-col gap-4 pt-[300px]">
-      <p className="text-center text-[20px] font-bold tracking-[2px] text-ink">
+      <p className="text-center text-[20px] font-bold tracking-[2px] text-text-primary">
         MTM
       </p>
       <div className="h-[10px]" />
@@ -44,7 +44,7 @@ export default function Login() {
           로그인
         </OutlineButton>
       </div>
-      <p className="text-[12px] text-ink-subtle">
+      <p className="text-caption text-text-tertiary">
         계정이 없으신가요?{" "}
         <Link to="/signup" className="underline">
           가입하기

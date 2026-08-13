@@ -57,8 +57,8 @@ export default function Profile() {
             저장
           </OutlineButton>
         </div>
-        <hr className="border-0 border-t border-line" />
-        <p className="text-[12px] text-ink-subtle">
+        <hr className="border-0 border-t border-border-default" />
+        <p className="text-caption text-text-tertiary">
           이메일 <span className="ml-2">user@example.com</span>
         </p>
       </main>
