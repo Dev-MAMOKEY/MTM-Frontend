@@ -1,20 +1,40 @@
 @import "tailwindcss";
 
-/* 토큰은 Figma 「MTM 와이어프레임」에서 직접 추출한 값이다.
-   https://www.figma.com/design/FOrL2pcwlm83yyTv8tBf9F/MTM-와이어프레임 */
+/* 토큰 이름과 값은 Figma 「중앙톤-mcm」의 디자인 시스템 프레임(8-24)에서 그대로 가져왔다.
+   이름을 시안과 똑같이 두는 이유는 대조 비용을 없애기 위해서다 — 시안의 `Text / Primary`가
+   코드의 `text-text-primary` 하나로만 대응한다.
+   https://www.figma.com/design/L9stITApE6HyybXhps4FGP/중앙톤-mcm?node-id=8-24 */
 @theme {
   --font-sans: "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
 
-  --color-ink: #212121; /* 본문·헤딩, 활성 버튼 테두리, 헤어라인 */
-  --color-ink-muted: #545454; /* 서브헤딩, 가격, 헬프텍스트 */
-  --color-ink-subtle: #878787; /* 라벨, 메타, 비활성 텍스트 */
-  --color-line: #d9d9d9; /* 구분선 */
-  --color-line-strong: #b5b5b5; /* 헤더 하단 보더, 비활성 버튼 테두리 */
+  /* 02 Color */
+  --color-text-primary: #212121; /* 본문·헤딩 */
+  --color-text-secondary: #545454; /* 서브헤딩, 가격, 헬프텍스트 */
+  --color-text-tertiary: #878787; /* 라벨, 메타, 비활성 텍스트 */
+  --color-text-inverse: #ffffff; /* 다크 서피스 위 글자 */
+  --color-border-default: #d9d9d9; /* 구분선, 이미지 테두리 */
+  --color-border-strong: #b5b5b5; /* 점선 빈 상태, 비활성 버튼 테두리 */
+  --color-border-emphasis: #212121; /* 활성 버튼 테두리, 인풋 헤어라인 */
+  --color-surface-header: #212121; /* 헤더 바 */
+  --color-surface-track: #e8e8e8; /* 이미지 자리, ProgressBar 트랙, IconButton 배경 */
   --color-surface-muted: #f2f2f2; /* 빈 슬롯·EmptyState 배경 */
-  --color-track: #e8e8e8; /* 이미지 자리, ProgressBar 트랙, IconButton 배경 */
+  --color-surface-base: #ffffff; /* 기본 배경 */
+
+  /* 01 Typography — 시안이 이름 붙인 다섯 역할.
+     11px(메타)·10px(태그)은 스케일 밖의 micro다. 시안의 스케일표는 12px에서 끊기지만
+     실제 컴포넌트 인스턴스가 11·10을 쓰므로, 그 자리는 각 컴포넌트에서 직접 지정한다. */
+  --text-page: 24px;
+  --text-page--font-weight: 700;
+  --text-section: 15px;
+  --text-section--font-weight: 500;
+  --text-body: 13px;
+  --text-button: 12px;
+  --text-button--font-weight: 500;
+  --text-button--letter-spacing: 1px;
+  --text-caption: 12px;
 }
 
 html,
 body {
-  @apply bg-white text-ink;
+  @apply bg-surface-base text-text-primary;
 }

@@ -10,7 +10,7 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Photos() {
   return (
-    <div className="flex min-h-screen flex-col bg-white">
+    <div className="flex min-h-screen flex-col bg-surface-base">
       <Header />
       <main className="flex w-full flex-col gap-5 px-10 py-6">
         <div className="flex w-full items-center justify-between">

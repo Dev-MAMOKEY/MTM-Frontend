@@ -10,7 +10,7 @@ export function FieldError({
   id?: string;
 }) {
   return (
-    <p id={id} className="text-[12px] text-ink-muted">
+    <p id={id} className="text-caption text-text-secondary">
       {children}
     </p>
   );

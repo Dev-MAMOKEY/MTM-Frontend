@@ -22,12 +22,12 @@ export function ProgressBar({
         aria-valuemin={0}
         aria-valuemax={100}
         aria-label={label}
-        className="h-[2px] overflow-hidden bg-track"
+        className="h-[2px] overflow-hidden bg-surface-track"
         style={{ width }}
       >
-        <div className="h-[2px] bg-ink" style={{ width: `${value}%` }} />
+        <div className="h-[2px] bg-text-primary" style={{ width: `${value}%` }} />
       </div>
-      <p className="text-[11px] tracking-[1px] text-ink-muted">{label}</p>
+      <p className="text-[11px] tracking-[1px] text-text-secondary">{label}</p>
     </div>
   );
 }

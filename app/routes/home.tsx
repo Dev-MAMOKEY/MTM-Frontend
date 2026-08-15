@@ -41,12 +41,12 @@ export default function Home() {
   const dimProducts = state === "no-photo" || state === "generating-base";
 
   return (
-    <div className="flex h-screen flex-col bg-white">
+    <div className="flex h-screen flex-col bg-surface-base">
       <Header />
 
       {/* Z1 · 내 사진 */}
-      <section className="flex w-full flex-col gap-[10px] border-b border-solid border-line p-[14px]">
-        <div className="flex w-full items-start justify-between text-ink-subtle">
+      <section className="flex w-full flex-col gap-[10px] border-b border-solid border-border-default p-[14px]">
+        <div className="flex w-full items-start justify-between text-text-tertiary">
           <h2 className="text-[10px] font-medium tracking-[1px]">내 사진</h2>
           <Link to="/photos" className="text-[11px]">
             전체 보기 →
@@ -70,7 +70,6 @@ export default function Home() {
         ) : null}
         {!hasPhoto ? (
           <EmptyState
-            className="w-full py-[30px]"
             action={<OutlineButton type="button">사진 올리기</OutlineButton>}
           >
             아직 올린 사진이 없습니다
@@ -82,7 +81,7 @@ export default function Home() {
         {/* Z2 · LookStage */}
         <section
           className={
-            "flex h-full min-w-px flex-1 flex-col gap-[10px] border-r border-solid border-line p-5 " +
+            "flex h-full min-w-px flex-1 flex-col gap-[10px] border-r border-solid border-border-default p-5 " +
             (dimStage ? "opacity-35" : "")
           }
         >
@@ -96,7 +95,7 @@ export default function Home() {
             (dimProducts ? "opacity-35" : "")
           }
         >
-          <div className="flex w-full items-start justify-between text-ink-subtle">
+          <div className="flex w-full items-start justify-between text-text-tertiary">
             <h2 className="text-[10px] font-medium tracking-[1px]">
               제품 {totalProductCount}
             </h2>
@@ -123,7 +122,7 @@ function LookStage({ state }: { state: LookState }) {
   // 기준 이미지가 아직 없으므로 제품명·태그·액션을 감춘다
   if (state === "generating-base") {
     return (
-      <EmptyState className="w-full flex-1">
+      <EmptyState className="flex-1">
         기준 이미지가 만들어지면 여기에 표시됩니다
       </EmptyState>
     );
@@ -131,7 +130,7 @@ function LookStage({ state }: { state: LookState }) {
 
   if (state === "no-product") {
     return (
-      <EmptyState className="w-full flex-1">
+      <EmptyState className="flex-1">
         <p>오른쪽에서 제품을 골라보세요</p>
         <p>(모바일: 아래에서)</p>
       </EmptyState>
@@ -141,7 +140,7 @@ function LookStage({ state }: { state: LookState }) {
   if (state === "failed") {
     return (
       <EmptyState
-        className="w-full flex-1"
+        className="flex-1"
         action={<OutlineButton type="button">다시 시도</OutlineButton>}
       >
         <p>착용 이미지를 만들지 못했습니다</p>
@@ -152,7 +151,7 @@ function LookStage({ state }: { state: LookState }) {
 
   if (state === "generating") {
     return (
-      <div className="flex w-full flex-1 flex-col items-center justify-center gap-[10px] border border-solid border-line bg-track">
+      <div className="flex w-full flex-1 flex-col items-center justify-center gap-[10px] border border-solid border-border-default bg-surface-track">
         <ProgressBar value={55} label="착용 이미지를 만드는 중" />
       </div>
     );
@@ -161,8 +160,8 @@ function LookStage({ state }: { state: LookState }) {
   // ready — 조작 요소는 전부 무대 바깥 아래에 둔다
   return (
     <>
-      <div className="flex w-full min-h-px flex-1 flex-col items-center justify-center border border-solid border-line bg-track" />
-      <p className="text-[13px] text-ink">Aren Zip Hobo in Visetos</p>
+      <div className="flex w-full min-h-px flex-1 flex-col items-center justify-center border border-solid border-border-default bg-surface-track" />
+      <p className="text-body text-text-primary">Aren Zip Hobo in Visetos</p>
       <div className="flex gap-[6px]">
         <CarryModeTag>한쪽 어깨</CarryModeTag>
         <CarryModeTag>14.2 × 11.8 IN</CarryModeTag>

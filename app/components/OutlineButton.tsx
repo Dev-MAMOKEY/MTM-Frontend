@@ -12,10 +12,10 @@ export function OutlineButton({
     <button
       {...props}
       className={
-        "border border-solid bg-white px-5 py-[11px] text-[12px] font-medium tracking-[1px] " +
-        "border-ink text-ink " +
-        "disabled:border-line-strong disabled:text-ink-subtle " +
-        "focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-ink " +
+        "border border-solid bg-surface-base px-5 py-[11px] text-button " +
+        "border-border-emphasis text-text-primary " +
+        "disabled:border-border-strong disabled:text-text-tertiary " +
+        "focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-border-emphasis " +
         className
       }
     />

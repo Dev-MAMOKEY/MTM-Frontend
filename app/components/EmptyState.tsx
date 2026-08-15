@@ -15,7 +15,8 @@ export function EmptyState({
   return (
     <div
       className={
-        "flex flex-col items-center justify-center gap-[14px] border border-dashed border-line-strong bg-surface-muted text-center text-[12px] text-ink-subtle " +
+        // W Fill · padding Y30 · gap 14 는 컴포넌트 기본값이다 (Figma 8-168)
+        "flex w-full flex-col items-center justify-center gap-[14px] border border-dashed border-border-strong bg-surface-muted py-[30px] text-center text-caption text-text-tertiary " +
         className
       }
     >

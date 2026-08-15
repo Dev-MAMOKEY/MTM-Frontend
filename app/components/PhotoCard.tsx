@@ -18,17 +18,17 @@ export function PhotoCard({
   lookCount?: number;
 }) {
   return (
-    <article className="flex w-[440px] flex-col gap-[10px] border border-solid border-line p-[14px]">
+    <article className="flex w-[440px] flex-col gap-[10px] border border-solid border-border-default p-[14px]">
       <div className="flex w-full items-start gap-[10px]">
-        <div className="flex h-[200px] min-w-px flex-1 flex-col items-center justify-center border border-solid border-line bg-track text-[11px] text-ink-subtle">
+        <div className="flex h-[200px] min-w-px flex-1 flex-col items-center justify-center border border-solid border-border-default bg-surface-track text-[11px] text-text-tertiary">
           원본 사진
         </div>
         {state === "done" ? (
-          <div className="flex h-[200px] min-w-px flex-1 flex-col items-center justify-center border border-solid border-line bg-track text-[11px] text-ink-subtle">
+          <div className="flex h-[200px] min-w-px flex-1 flex-col items-center justify-center border border-solid border-border-default bg-surface-track text-[11px] text-text-tertiary">
             기준 이미지
           </div>
         ) : (
-          <div className="flex h-[200px] min-w-px flex-1 flex-col items-center justify-center gap-2 border border-dashed border-line-strong bg-surface-muted text-[11px] text-ink-subtle">
+          <div className="flex h-[200px] min-w-px flex-1 flex-col items-center justify-center gap-2 border border-dashed border-border-strong bg-surface-muted text-[11px] text-text-tertiary">
             {state === "generating" ? (
               <ProgressBar
                 value={70}
@@ -46,7 +46,7 @@ export function PhotoCard({
         )}
       </div>
 
-      <p className="text-[11px] text-ink-subtle">{meta}</p>
+      <p className="text-[11px] text-text-tertiary">{meta}</p>
 
       {state === "done" ? (
         <>
@@ -58,7 +58,7 @@ export function PhotoCard({
             </OutlineButton>
           </div>
           {/* 파괴적 동작이므로 무엇이 사라지는지 누르기 전에 알린다 */}
-          <p className="w-full border-l-2 border-solid border-ink pl-2 text-[11px] text-ink-muted">
+          <p className="w-full border-l-2 border-solid border-border-emphasis pl-2 text-[11px] text-text-secondary">
             다시 만들면 이 사진으로 만든 착용 이미지 {lookCount}장이 함께
             삭제됩니다.
           </p>

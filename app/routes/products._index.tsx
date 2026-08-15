@@ -22,12 +22,12 @@ export default function Products() {
   const [page, setPage] = useState(1);
 
   return (
-    <div className="flex min-h-screen flex-col bg-white">
+    <div className="flex min-h-screen flex-col bg-surface-base">
       <Header />
       <main className="flex w-full flex-col gap-[22px] px-10 py-6">
         <div className="flex w-full items-baseline justify-between">
           <PageTitle>제품</PageTitle>
-          <p className="text-[12px] text-ink-subtle">{totalProductCount}개</p>
+          <p className="text-caption text-text-tertiary">{totalProductCount}개</p>
         </div>
 
         <div className="grid grid-cols-4 gap-x-5 gap-y-[26px]">
@@ -47,7 +47,7 @@ export default function Products() {
             현재 페이지는 색이 아니라 굵기와 밑줄로 표시한다. */}
         <nav
           aria-label="페이지"
-          className="flex w-full items-center justify-center gap-[10px] border-t border-solid border-line pt-4"
+          className="flex w-full items-center justify-center gap-[10px] border-t border-solid border-border-default pt-4"
         >
           <OutlineButton
             type="button"
@@ -63,10 +63,10 @@ export default function Products() {
               aria-current={n === page ? "page" : undefined}
               onClick={() => setPage(n)}
               className={
-                "text-[12px] tracking-[1px] focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-ink " +
+                "text-caption tracking-[1px] focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-border-emphasis " +
                 (n === page
-                  ? "font-medium text-ink underline"
-                  : "font-normal text-ink-subtle")
+                  ? "font-medium text-text-primary underline"
+                  : "font-normal text-text-tertiary")
               }
             >
               {n}

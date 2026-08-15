@@ -18,10 +18,10 @@ export function PhotoThumb({
       aria-label={label}
       aria-pressed={selected}
       className={
-        "size-[64px] shrink-0 bg-track focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-ink " +
+        "size-[64px] shrink-0 bg-surface-track focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-border-emphasis " +
         (selected
-          ? "border-2 border-solid border-ink"
-          : "border border-solid border-line")
+          ? "border-2 border-solid border-border-emphasis"
+          : "border border-solid border-border-default")
       }
     />
   );
@@ -33,7 +33,7 @@ export function PhotoUploadSlot({ onClick }: { onClick?: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="flex size-[64px] shrink-0 flex-col items-center justify-center border border-dashed border-line bg-surface-muted text-[11px] text-ink-subtle focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-ink"
+      className="flex size-[64px] shrink-0 flex-col items-center justify-center border border-dashed border-border-strong bg-surface-track text-[11px] text-text-tertiary focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-border-emphasis"
     >
       + 올리기
     </button>
