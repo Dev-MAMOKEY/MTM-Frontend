@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, redirect } from "react-router";
 
 import { SpecTag } from "../components/SpecTag";
 import { EmptyState } from "../components/EmptyState";
@@ -10,12 +10,18 @@ import { PhotoThumb, PhotoUploadSlot } from "../components/PhotoThumb";
 import { ProductTile } from "../components/ProductTile";
 import { ProgressBar } from "../components/ProgressBar";
 import { products, totalProductCount } from "../mocks/products";
+import { getMe, hasBodyInfo } from "../api/members.server";
 import { requireAccessToken } from "../api/session.server";
 import type { Route } from "./+types/home";
 
-/** 로그인하지 않았으면 requireAccessToken 이 /login 으로 보낸다. */
 export async function loader({ request }: Route.LoaderArgs) {
-  await requireAccessToken(request);
+  const token = await requireAccessToken(request);
+
+  // 신체 정보 없이는 착용 이미지를 만들 수 없다. 첫 로그인이면 여기서 설정으로 보낸다.
+  // 로그인 직후만이 아니라 진입할 때마다 보므로 다른 경로로 들어와도 빠져나갈 수 없다.
+  if (!hasBodyInfo(await getMe(token))) {
+    throw redirect("/profile?setup=1");
+  }
 
   return null;
 }

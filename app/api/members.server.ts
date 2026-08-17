@@ -7,6 +7,16 @@ export function getMe(token: string) {
 }
 
 /**
+ * 신체 정보를 아직 한 번도 저장하지 않은 계정인지 본다.
+ *
+ * 이 서비스가 파는 것이 *크기 감*이라 키·몸무게 없이는 착용 이미지가 성립하지 않는다.
+ * 그래서 필수값이고, 없으면 착용 화면에 들여보내지 않는다.
+ */
+export function hasBodyInfo(member: Member) {
+  return member.heightCm != null && member.weightKg != null;
+}
+
+/**
  * 키·몸무게를 저장한다. 둘 다 필수이고, 값이 이미 있으면 교체된다.
  *
  * 부분 수정용 PATCH 도 있지만 쓰지 않는다 — 이 화면은 두 값을 함께 받아 함께 보낸다.
