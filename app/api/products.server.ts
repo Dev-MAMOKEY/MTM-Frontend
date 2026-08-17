@@ -1,7 +1,16 @@
-/** 제품 엔드포인트. 상세 조회 API 는 아직 없다(⚠B3). */
+/** 제품 엔드포인트. */
 import { apiFetch } from "./client.server";
-import type { Product } from "./types";
+import type { ProductPage } from "./types";
 
-export function getProducts(token: string) {
-  return apiFetch<Product[]>("/api/v1/products", { token });
+/** 백엔드 `page` 는 0부터 센다. 화면의 1부터 세는 쪽과 섞이지 않게 여기서만 다룬다. */
+export function getProducts(
+  token: string,
+  { page, size }: { page: number; size: number },
+) {
+  const query = new URLSearchParams({
+    page: String(page - 1),
+    size: String(size),
+  });
+
+  return apiFetch<ProductPage>(`/api/v1/products?${query}`, { token });
 }
