@@ -108,13 +108,10 @@ export default function Profile({
         className="flex w-[420px] flex-col gap-[18px] px-[60px] pt-[110px]"
       >
         <input type="hidden" name="setup" value={setup ? "1" : "0"} />
-        <PageTitle>{setup ? "시작하기" : "내 정보"}</PageTitle>
+        {/* 첫 설정이어도 같은 화면이다. 시안이 요구하는 건 강제로 뜨는 것과
+            저장해야 넘어가는 것 둘뿐이라 문구는 그대로 둔다. */}
+        <PageTitle>내 정보</PageTitle>
         <SectionTitle>신체 정보</SectionTitle>
-        {setup ? (
-          <p className="text-caption text-text-tertiary">
-            착용 이미지를 만들려면 키와 몸무게가 필요합니다.
-          </p>
-        ) : null}
         <FieldInput
           label="키 (cm)"
           name="height"
@@ -134,7 +131,7 @@ export default function Profile({
         {actionData?.error ? <FieldError>{actionData.error}</FieldError> : null}
         <div className="flex items-center gap-3">
           <OutlineButton type="submit" disabled={!canSave}>
-            {saving ? "저장 중…" : setup ? "시작하기" : "저장"}
+            {saving ? "저장 중…" : "저장"}
           </OutlineButton>
           {actionData?.saved && !dirty ? (
             <span className="text-caption text-text-tertiary">저장됨</span>
