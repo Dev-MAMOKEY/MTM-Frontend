@@ -1,6 +1,6 @@
 /** 제품 엔드포인트. */
 import { apiFetch } from "./client.server";
-import type { ProductPage } from "./types";
+import type { ProductDetail, ProductPage } from "./types";
 
 /** 백엔드 `page` 는 0부터 센다. 화면의 1부터 세는 쪽과 섞이지 않게 여기서만 다룬다. */
 export function getProducts(
@@ -13,4 +13,8 @@ export function getProducts(
   });
 
   return apiFetch<ProductPage>(`/api/v1/products?${query}`, { token });
+}
+
+export function getProduct(token: string, id: number) {
+  return apiFetch<ProductDetail>(`/api/v1/products/${id}`, { token });
 }
