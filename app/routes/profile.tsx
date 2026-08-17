@@ -5,14 +5,20 @@ import { Header } from "../components/Header";
 import { OutlineButton } from "../components/OutlineButton";
 import { PageTitle } from "../components/PageTitle";
 import { SectionTitle } from "../components/SectionTitle";
+import { getMe } from "../api/members.server";
 import { requireAccessToken } from "../api/session.server";
 import type { Route } from "./+types/profile";
 
-/** 로그인하지 않았으면 requireAccessToken 이 /login 으로 보낸다. */
 export async function loader({ request }: Route.LoaderArgs) {
-  await requireAccessToken(request);
+  const token = await requireAccessToken(request);
+  const me = await getMe(token);
 
-  return null;
+  // 저장된 값이 없으면 빈 칸으로 둔다. 0 을 넣으면 사용자가 0 을 저장한 것처럼 보인다.
+  return {
+    email: me.email ?? "",
+    height: me.heightCm != null ? String(me.heightCm) : "",
+    weight: me.weightKg != null ? String(me.weightKg) : "",
+  };
 }
 
 export function meta({}: Route.MetaArgs) {
@@ -29,9 +35,9 @@ function validate(value: string, min: number, max: number, label: string) {
   return undefined;
 }
 
-export default function Profile() {
-  const [height, setHeight] = useState("");
-  const [weight, setWeight] = useState("");
+export default function Profile({ loaderData }: Route.ComponentProps) {
+  const [height, setHeight] = useState(loaderData.height);
+  const [weight, setWeight] = useState(loaderData.weight);
 
   const heightError = validate(height, 100, 250, "키");
   const weightError = validate(weight, 30, 200, "몸무게");
@@ -67,7 +73,7 @@ export default function Profile() {
         </div>
         <hr className="border-0 border-t border-border-default" />
         <p className="text-caption text-text-tertiary">
-          이메일 <span className="ml-2">user@example.com</span>
+          이메일 <span className="ml-2">{loaderData.email}</span>
         </p>
       </main>
     </>
