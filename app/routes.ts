@@ -8,5 +8,5 @@ export default [
   route("profile", "routes/profile.tsx"),
   route("photos", "routes/photos.tsx"),
   route("products", "routes/products._index.tsx"),
-  route("products/:sku", "routes/products.$sku.tsx"),
+  route("products/:id", "routes/products.$id.tsx"),
 ] satisfies RouteConfig;

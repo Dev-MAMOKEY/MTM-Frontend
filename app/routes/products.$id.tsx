@@ -4,7 +4,7 @@ import { Link } from "react-router";
 import { Header } from "../components/Header";
 import { OutlineButton } from "../components/OutlineButton";
 import { requireAccessToken } from "../api/session.server";
-import type { Route } from "./+types/products.$sku";
+import type { Route } from "./+types/products.$id";
 
 /** 로그인하지 않았으면 requireAccessToken 이 /login 으로 보낸다. */
 export async function loader({ request }: Route.LoaderArgs) {
