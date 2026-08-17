@@ -30,6 +30,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/photos/{photoId}/base-image": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 기준 이미지 생성
+         * @description 원본 사진을 정자세와 불투명 흰 배경의 기준 이미지로 변환한다.
+         */
+        post: operations["createBaseImage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/photos/{photoId}/base-image/regenerate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 기준 이미지 재생성
+         * @description 원본 사진을 그대로 둔 채 기준 이미지만 다시 만든다. 재생성하면 그 기준 이미지에 딸린 착용 이미지가 모두 함께 삭제된다.
+         */
+        post: operations["regenerateBaseImage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/members/me/body-info": {
         parameters: {
             query?: never;
@@ -52,6 +92,46 @@ export interface paths {
          * @description 프로필에서 키 또는 몸무게를 수정한다. 보내지 않은 값은 기존 값을 유지한다.
          */
         patch: operations["updateBodyInfo"];
+        trace?: never;
+    };
+    "/api/v1/base-images/{baseImageId}/worn-images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 착용 이미지 생성
+         * @description 기준 이미지와 선택한 제품의 정면 제품 컷을 사용해 착용 이미지를 생성하고 저장한다. 이미 같은 조합(기준 이미지, 제품)의 착용 이미지가 있으면 새로 생성하지 않고 저장된 것을 즉시 반환한다.
+         */
+        post: operations["createWornImage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/base-images/{baseImageId}/worn-images/regenerate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 착용 이미지 재생성
+         * @description 이미 만든 (기준 이미지, 제품) 조합의 착용 이미지를 새로 생성해 기존 것을 교체한다. 새 행을 만들지 않고 저장된 착용 이미지를 교체하며, 다시 만들 대상이 없으면 실패한다.
+         */
+        post: operations["regenerateWornImage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/auth/signup": {
@@ -123,9 +203,29 @@ export interface paths {
         };
         /**
          * 제품 목록 조회
-         * @description 적재된 MCM 제품 전체를 대표 이미지와 함께 돌려준다. 대표 이미지 URL은 유효기간 30분의 Presigned URL이라 오래 캐시하면 안 된다.
+         * @description 적재된 MCM 제품을 페이지 단위로 돌려준다. page는 0부터 시작하며, size는 최대 100까지 허용된다. 대표 이미지 URL은 유효기간 30분의 Presigned URL이라 오래 캐시하면 안 된다.
          */
         get: operations["getProducts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/products/{productId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 제품 상세 조회
+         * @description 제품 하나의 색상·설명·실측 치수·착용 방식과 제품 컷 전체를 돌려준다. 이미지 URL은 유효기간 30분의 Presigned URL이라 오래 캐시하면 안 된다.
+         */
+        get: operations["getProduct"];
         put?: never;
         post?: never;
         delete?: never;
@@ -176,6 +276,22 @@ export interface components {
             /** Format: date-time */
             timestamp?: string;
         };
+        BaseImageResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            photoId?: number;
+            imageUrl?: string;
+            /** Format: date-time */
+            createdAt?: string;
+        };
+        RsDataBaseImageResponse: {
+            success?: boolean;
+            data?: components["schemas"]["BaseImageResponse"];
+            error?: components["schemas"]["ErrorInfo"];
+            /** Format: date-time */
+            timestamp?: string;
+        };
         BodyInfoRequestDTO: {
             heightCm: number;
             weightKg: number;
@@ -193,6 +309,32 @@ export interface components {
             error?: components["schemas"]["ErrorInfo"];
             /** Format: date-time */
             timestamp?: string;
+        };
+        WornImageCreateRequest: {
+            /** Format: int64 */
+            productId: number;
+        };
+        RsDataWornImageResponse: {
+            success?: boolean;
+            data?: components["schemas"]["WornImageResponse"];
+            error?: components["schemas"]["ErrorInfo"];
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        WornImageResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            baseImageId?: number;
+            /** Format: int64 */
+            productId?: number;
+            /** Format: int64 */
+            productCutId?: number;
+            imageUrl?: string;
+            /** @enum {string} */
+            generator?: "GEMINI" | "OPENAI" | "FAKE";
+            /** Format: date-time */
+            createdAt?: string;
         };
         SignupRequestDTO: {
             /** Format: email */
@@ -230,6 +372,19 @@ export interface components {
             weightKg?: number;
             anyValuePresent?: boolean;
         };
+        PageResponseDTOProductResponse: {
+            content?: components["schemas"]["ProductResponse"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            first?: boolean;
+            last?: boolean;
+        };
         ProductResponse: {
             /** Format: int64 */
             id?: number;
@@ -240,9 +395,46 @@ export interface components {
             currency?: "KRW" | "USD";
             frontCutUrl?: string;
         };
-        RsDataListProductResponse: {
+        RsDataPageResponseDTOProductResponse: {
             success?: boolean;
-            data?: components["schemas"]["ProductResponse"][];
+            data?: components["schemas"]["PageResponseDTOProductResponse"];
+            error?: components["schemas"]["ErrorInfo"];
+            /** Format: date-time */
+            timestamp?: string;
+        };
+        DimensionsResponse: {
+            depthIn?: number;
+            widthIn?: number;
+            heightIn?: number;
+        };
+        ProductCutResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int32 */
+            slotNo?: number;
+            frontSlot?: boolean;
+            wornSlot?: boolean;
+            imageUrl?: string;
+        };
+        ProductDetailResponse: {
+            /** Format: int64 */
+            id?: number;
+            sku?: string;
+            name?: string;
+            color?: string;
+            price?: number;
+            /** @enum {string} */
+            currency?: "KRW" | "USD";
+            description?: string;
+            dimensions?: components["schemas"]["DimensionsResponse"];
+            /** @enum {string} */
+            wearType?: "ONE_SHOULDER" | "CROSSBODY" | "IN_HAND" | "WAIST" | "BESIDE";
+            detailUrl?: string;
+            productCuts?: components["schemas"]["ProductCutResponse"][];
+        };
+        RsDataProductDetailResponse: {
+            success?: boolean;
+            data?: components["schemas"]["ProductDetailResponse"];
             error?: components["schemas"]["ErrorInfo"];
             /** Format: date-time */
             timestamp?: string;
@@ -346,6 +538,122 @@ export interface operations {
             };
         };
     };
+    createBaseImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                photoId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 생성 성공 또는 기존 기준 이미지 반환 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataBaseImageResponse"];
+                };
+            };
+            /** @description 회원 신체 정보가 없음 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataBaseImageResponse"];
+                };
+            };
+            /** @description 토큰이 없거나 만료됨 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataBaseImageResponse"];
+                };
+            };
+            /** @description 원본 사진이 없거나 본인 소유가 아님 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataBaseImageResponse"];
+                };
+            };
+            /** @description 이미지 생성 모델 호출 실패 */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataBaseImageResponse"];
+                };
+            };
+        };
+    };
+    regenerateBaseImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                photoId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 재생성 성공, 교체된 기준 이미지를 반환 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataBaseImageResponse"];
+                };
+            };
+            /** @description 회원 신체 정보가 없음 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataBaseImageResponse"];
+                };
+            };
+            /** @description 토큰이 없거나 만료됨 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataBaseImageResponse"];
+                };
+            };
+            /** @description 원본 사진이 없거나 본인 소유가 아니거나, 다시 만들 기준 이미지가 없음 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataBaseImageResponse"];
+                };
+            };
+            /** @description 이미지 생성 모델 호출 실패 */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataBaseImageResponse"];
+                };
+            };
+        };
+    };
     saveBodyInfo: {
         parameters: {
             query?: never;
@@ -426,6 +734,157 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["RsDataMemberResponseDTO"];
+                };
+            };
+        };
+    };
+    createWornImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                baseImageId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WornImageCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description 생성 성공 또는 이미 생성된 착용 이미지를 즉시 반환 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataWornImageResponse"];
+                };
+            };
+            /** @description 신체 정보, 제품 실측 치수 또는 착용 방식이 없음 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataWornImageResponse"];
+                };
+            };
+            /** @description 토큰이 없거나 만료됨 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataWornImageResponse"];
+                };
+            };
+            /** @description 기준 이미지, 제품 또는 제품 컷이 없거나 기준 이미지가 본인 소유가 아님 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataWornImageResponse"];
+                };
+            };
+            /** @description 동시 요청으로 동일 조합이 먼저 저장되어 충돌함(드묾) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataWornImageResponse"];
+                };
+            };
+            /** @description 이미지 저장 실패 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataWornImageResponse"];
+                };
+            };
+            /** @description 이미지 생성 모델 호출 실패 */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataWornImageResponse"];
+                };
+            };
+        };
+    };
+    regenerateWornImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                baseImageId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WornImageCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description 재생성 성공, 교체된 착용 이미지를 반환 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataWornImageResponse"];
+                };
+            };
+            /** @description 신체 정보, 제품 실측 치수 또는 착용 방식이 없음 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataWornImageResponse"];
+                };
+            };
+            /** @description 토큰이 없거나 만료됨 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataWornImageResponse"];
+                };
+            };
+            /** @description 기준 이미지·제품·제품 컷이 없거나, 다시 만들 착용 이미지가 없거나, 기준 이미지가 본인 소유가 아님 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataWornImageResponse"];
+                };
+            };
+            /** @description 이미지 저장 실패 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataWornImageResponse"];
+                };
+            };
+            /** @description 이미지 생성 모델 호출 실패 */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataWornImageResponse"];
                 };
             };
         };
@@ -540,7 +999,10 @@ export interface operations {
     };
     getProducts: {
         parameters: {
-            query?: never;
+            query?: {
+                page?: number;
+                size?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -553,7 +1015,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["RsDataListProductResponse"];
+                    "*/*": components["schemas"]["RsDataPageResponseDTOProductResponse"];
                 };
             };
             /** @description 토큰이 없거나 만료됨 */
@@ -562,7 +1024,47 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["RsDataListProductResponse"];
+                    "*/*": components["schemas"]["RsDataPageResponseDTOProductResponse"];
+                };
+            };
+        };
+    };
+    getProduct: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                productId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 조회 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataProductDetailResponse"];
+                };
+            };
+            /** @description 토큰이 없거나 만료됨 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataProductDetailResponse"];
+                };
+            };
+            /** @description 존재하지 않는 제품 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataProductDetailResponse"];
                 };
             };
         };
