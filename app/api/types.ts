@@ -25,6 +25,11 @@ export type ErrorInfo = Schemas["ErrorInfo"];
 export type Product = Schemas["ProductResponse"];
 /** 목록은 페이징된다 — 실제 항목은 `content` 안에 있다. */
 export type ProductPage = Schemas["PageResponseDTOProductResponse"];
+export type ProductDetail = Schemas["ProductDetailResponse"];
+export type ProductCut = Schemas["ProductCutResponse"];
+export type Dimensions = Schemas["DimensionsResponse"];
+/** 착용 방식. 목록 응답에는 없고 상세 응답에만 있다. */
+export type WearType = NonNullable<ProductDetail["wearType"]>;
 export type Photo = Schemas["PhotoResponse"];
 export type Member = Schemas["MemberResponseDTO"];
 export type Token = Schemas["TokenResponseDTO"];
