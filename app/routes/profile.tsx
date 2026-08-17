@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Form, useNavigation } from "react-router";
+import { Form, redirect, useNavigation } from "react-router";
 
 import { ApiError } from "../api/client.server";
-import { getMe, saveBodyInfo } from "../api/members.server";
+import { getMe, hasBodyInfo, saveBodyInfo } from "../api/members.server";
 import { FieldError } from "../components/FieldError";
 import { FieldInput } from "../components/FieldInput";
 import { Header } from "../components/Header";
@@ -16,8 +16,13 @@ export async function loader({ request }: Route.LoaderArgs) {
   const token = await requireAccessToken(request);
   const me = await getMe(token);
 
+  // 첫 설정인지는 주소가 아니라 실제 데이터로 판단한다. ?setup=1 만 믿으면
+  // 값이 이미 있는 사람이 주소를 쳐서 첫 설정 화면을 볼 수 있다.
+  const setup = !hasBodyInfo(me);
+
   // 저장된 값이 없으면 빈 칸으로 둔다. 0 을 넣으면 사용자가 0 을 저장한 것처럼 보인다.
   return {
+    setup,
     email: me.email ?? "",
     height: me.heightCm != null ? String(me.heightCm) : "",
     weight: me.weightKg != null ? String(me.weightKg) : "",
@@ -33,6 +38,7 @@ export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData();
   const heightCm = Number(form.get("height"));
   const weightKg = Number(form.get("weight"));
+  const setup = form.get("setup") === "1";
 
   // 화면에서 이미 막지만 폼은 우회할 수 있다. 서버에 보내기 전에 한 번 더 본다.
   if (!Number.isFinite(heightCm) || !Number.isFinite(weightKg)) {
@@ -49,8 +55,13 @@ export async function action({ request }: Route.ActionArgs) {
     throw error;
   }
 
-  // 이동하지 않는다 — 저장 후에도 같은 화면에 머무는 것이 이 화면의 쓰임이다.
-  // loader 가 다시 돌아 방금 저장한 값을 서버에서 받아온다.
+  // 첫 설정은 착용 화면으로 가려다 막힌 길이다. 저장했으면 원래 가려던 곳으로 잇는다.
+  if (setup) {
+    throw redirect("/");
+  }
+
+  // 그 밖에는 이동하지 않는다 — 값을 확인하고 고치는 것이 이 화면의 쓰임이라
+  // 그 자리에 머무는 게 맞다. loader 가 다시 돌아 저장된 값을 서버에서 받아온다.
   return { error: null, saved: true };
 }
 
@@ -85,15 +96,25 @@ export default function Profile({
   const dirty =
     height !== loaderData.height || weight !== loaderData.weight;
 
+  const { setup } = loaderData;
+
   return (
     <>
-      <Header />
+      {/* 첫 설정에서는 헤더를 감춘다. 여기서 나가는 길을 열어두면 신체 정보 없이
+          착용 화면으로 갔다가 다시 여기로 튕기는 왕복이 생긴다. */}
+      {setup ? null : <Header />}
       <Form
         method="post"
         className="flex w-[420px] flex-col gap-[18px] px-[60px] pt-[110px]"
       >
-        <PageTitle>내 정보</PageTitle>
+        <input type="hidden" name="setup" value={setup ? "1" : "0"} />
+        <PageTitle>{setup ? "시작하기" : "내 정보"}</PageTitle>
         <SectionTitle>신체 정보</SectionTitle>
+        {setup ? (
+          <p className="text-caption text-text-tertiary">
+            착용 이미지를 만들려면 키와 몸무게가 필요합니다.
+          </p>
+        ) : null}
         <FieldInput
           label="키 (cm)"
           name="height"
@@ -113,7 +134,7 @@ export default function Profile({
         {actionData?.error ? <FieldError>{actionData.error}</FieldError> : null}
         <div className="flex items-center gap-3">
           <OutlineButton type="submit" disabled={!canSave}>
-            {saving ? "저장 중…" : "저장"}
+            {saving ? "저장 중…" : setup ? "시작하기" : "저장"}
           </OutlineButton>
           {actionData?.saved && !dirty ? (
             <span className="text-caption text-text-tertiary">저장됨</span>
