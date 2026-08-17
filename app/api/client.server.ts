@@ -23,9 +23,14 @@ export class ApiError extends Error {
   }
 }
 
+type ApiFetchOptions = RequestInit & {
+  /** 로그인 세션의 액세스 토큰. `auth/*` 를 뺀 모든 엔드포인트가 요구한다. */
+  token?: string;
+};
+
 export async function apiFetch<T>(
   path: string,
-  init?: RequestInit,
+  { token, ...init }: ApiFetchOptions = {},
 ): Promise<T> {
   const url = `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 
@@ -33,9 +38,9 @@ export async function apiFetch<T>(
     ...init,
     headers: {
       Accept: "application/json",
-      // 인증 헤더는 로그인 슬라이스(#2)에서 여기에 붙인다.
-      ...(init?.body ? { "Content-Type": "application/json" } : {}),
-      ...init?.headers,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(init.body ? { "Content-Type": "application/json" } : {}),
+      ...init.headers,
     },
   });
 
