@@ -6,24 +6,40 @@ import { ProgressBar } from "./ProgressBar";
  * 원본과 기준 이미지를 나란히 두는 이유는 "내 얼굴이 맞나"를 대조로 판정하기 때문이다.
  * (Figma 8:12 완료 · 8:26 생성 중 · 8:35 실패)
  */
-export type PhotoCardState = "done" | "generating" | "failed";
+export type PhotoCardState = "none" | "done" | "generating" | "failed";
 
 export function PhotoCard({
   state,
   meta,
+  imageUrl,
   lookCount = 0,
 }: {
+  /** `none` — 기준 이미지를 아직 만들지 않았거나 상태를 알 수 없다(슬라이스 5). */
   state: PhotoCardState;
   meta: string;
+  imageUrl?: string;
   lookCount?: number;
 }) {
   return (
     <article className="flex w-[440px] flex-col gap-[10px] border border-solid border-border-default p-[14px]">
       <div className="flex w-full items-start gap-[10px]">
-        <div className="flex h-[200px] min-w-px flex-1 flex-col items-center justify-center border border-solid border-border-default bg-surface-track text-[11px] text-text-tertiary">
-          원본 사진
-        </div>
-        {state === "done" ? (
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt=""
+            loading="lazy"
+            className="h-[200px] min-w-px flex-1 border border-solid border-border-default bg-surface-base object-cover"
+          />
+        ) : (
+          <div className="flex h-[200px] min-w-px flex-1 flex-col items-center justify-center border border-solid border-border-default bg-surface-track text-[11px] text-text-tertiary">
+            원본 사진
+          </div>
+        )}
+        {state === "none" ? (
+          <div className="flex h-[200px] min-w-px flex-1 flex-col items-center justify-center border border-dashed border-border-strong bg-surface-muted text-[11px] text-text-tertiary">
+            기준 이미지 없음
+          </div>
+        ) : state === "done" ? (
           <div className="flex h-[200px] min-w-px flex-1 flex-col items-center justify-center border border-solid border-border-default bg-surface-track text-[11px] text-text-tertiary">
             기준 이미지
           </div>
