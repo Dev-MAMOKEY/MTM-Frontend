@@ -3,7 +3,15 @@ import { Link } from "react-router";
 
 import { Header } from "../components/Header";
 import { OutlineButton } from "../components/OutlineButton";
+import { requireAccessToken } from "../api/session.server";
 import type { Route } from "./+types/products.$sku";
+
+/** 로그인하지 않았으면 requireAccessToken 이 /login 으로 보낸다. */
+export async function loader({ request }: Route.LoaderArgs) {
+  await requireAccessToken(request);
+
+  return null;
+}
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "제품 상세 · MTM" }];

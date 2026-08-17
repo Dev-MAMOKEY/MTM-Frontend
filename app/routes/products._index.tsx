@@ -10,7 +10,15 @@ import {
   totalPages,
   totalProductCount,
 } from "../mocks/products";
+import { requireAccessToken } from "../api/session.server";
 import type { Route } from "./+types/products._index";
+
+/** 로그인하지 않았으면 requireAccessToken 이 /login 으로 보낸다. */
+export async function loader({ request }: Route.LoaderArgs) {
+  await requireAccessToken(request);
+
+  return null;
+}
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "제품 · MTM" }];

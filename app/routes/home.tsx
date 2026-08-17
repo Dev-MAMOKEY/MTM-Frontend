@@ -10,7 +10,15 @@ import { PhotoThumb, PhotoUploadSlot } from "../components/PhotoThumb";
 import { ProductTile } from "../components/ProductTile";
 import { ProgressBar } from "../components/ProgressBar";
 import { products, totalProductCount } from "../mocks/products";
+import { requireAccessToken } from "../api/session.server";
 import type { Route } from "./+types/home";
+
+/** 로그인하지 않았으면 requireAccessToken 이 /login 으로 보낸다. */
+export async function loader({ request }: Route.LoaderArgs) {
+  await requireAccessToken(request);
+
+  return null;
+}
 
 export function meta({}: Route.MetaArgs) {
   return [

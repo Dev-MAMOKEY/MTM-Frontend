@@ -2,7 +2,15 @@ import { Header } from "../components/Header";
 import { OutlineButton } from "../components/OutlineButton";
 import { PageTitle } from "../components/PageTitle";
 import { PhotoCard } from "../components/PhotoCard";
+import { requireAccessToken } from "../api/session.server";
 import type { Route } from "./+types/photos";
+
+/** 로그인하지 않았으면 requireAccessToken 이 /login 으로 보낸다. */
+export async function loader({ request }: Route.LoaderArgs) {
+  await requireAccessToken(request);
+
+  return null;
+}
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "내 사진 · MTM" }];
