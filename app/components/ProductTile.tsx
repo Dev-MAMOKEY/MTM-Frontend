@@ -40,7 +40,10 @@ export function ProductTile({
           alt=""
           loading="lazy"
           style={{ width, height }}
-          className="border border-solid border-border-default bg-surface-track object-contain"
+          // object-contain 은 컷 비율이 칸과 달라 좌우에 여백을 남긴다. 컷 자체가
+          // 옅은 회색 배경을 물고 있어 그 여백이 어떤 색이든 띠처럼 잘려 보인다.
+          // cover 로 칸을 채운다 — 컷 가장자리가 잘리지만 여백이 아예 없어진다.
+          className="border border-solid border-border-default bg-surface-base object-cover"
         />
       ) : (
         // 이미지가 없어도 자리는 지킨다 — 없다고 격자가 흐트러지면 훑기가 더 어려워진다
