@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router";
 
-import { CarryModeTag } from "../components/CarryModeTag";
+import { SpecTag } from "../components/SpecTag";
 import { EmptyState } from "../components/EmptyState";
 import { Header } from "../components/Header";
 import { IconButton } from "../components/IconButton";
@@ -163,8 +163,7 @@ function LookStage({ state }: { state: LookState }) {
       <div className="flex w-full min-h-px flex-1 flex-col items-center justify-center border border-solid border-border-default bg-surface-track" />
       <p className="text-body text-text-primary">Aren Zip Hobo in Visetos</p>
       <div className="flex gap-[6px]">
-        <CarryModeTag>한쪽 어깨</CarryModeTag>
-        <CarryModeTag>14.2 × 11.8 IN</CarryModeTag>
+        <SpecTag>14.2 × 11.8 IN</SpecTag>
       </div>
       <div className="flex items-center gap-[10px]">
         <OutlineButton type="button">다시 만들기</OutlineButton>

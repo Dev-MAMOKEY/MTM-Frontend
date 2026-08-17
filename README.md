@@ -22,10 +22,32 @@ Node.js **22.22.0 이상**이 필요하다 (React Router 8 요구 사항). 낮�
 
 ```bash
 npm install
+cp .env.example .env   # 백엔드 주소를 채운다
 npm run dev
 ```
 
 `http://localhost:5173` 에서 열린다.
+
+`.env` 는 깃에 올리지 않는다. 키 이름과 형식은 `.env.example` 에만 둔다.
+
+## API 타입
+
+백엔드 스키마는 Swagger(OpenAPI) 문서에서 **생성**한다. 손으로 적으면 백엔드가 필드를
+바꿔도 프런트 타입은 그대로라, 컴파일은 통과하는데 런타임에 `undefined` 가 나온다.
+
+```bash
+npm run gen:api        # .env 의 API_DOCS_URL 을 읽어 app/api/schema.d.ts 생성
+```
+
+```
+app/api/
+├── schema.d.ts        생성물. 직접 수정하지 않는다
+├── types.ts           화면이 쓸 이름만 재수출 — 화면 코드는 여기만 import 한다
+├── client.server.ts   fetch 래퍼. loader · action 전용
+└── env.server.ts      서버 전용 환경변수
+```
+
+`schema.d.ts` 는 커밋한다. 백엔드를 띄우지 않아도 CI 와 동료가 타입 검사를 할 수 있어야 한다.
 
 ## 스크립트
 
@@ -35,6 +57,7 @@ npm run dev
 | `npm run build` | 프로덕션 빌드 → `build/` |
 | `npm start` | 빌드 결과물 서빙 |
 | `npm run typecheck` | 라우트 타입 생성 후 `tsc` 검사 |
+| `npm run gen:api` | Swagger 문서에서 API 타입 생성 → `app/api/schema.d.ts` |
 
 ## 디렉터리
 

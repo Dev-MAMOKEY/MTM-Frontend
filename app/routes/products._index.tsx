@@ -37,7 +37,6 @@ export default function Products() {
               size="large"
               name={product.name}
               price={product.price}
-              carryMode={product.carryMode}
               onClick={() => navigate(`/products/${product.sku}`)}
             />
           ))}
