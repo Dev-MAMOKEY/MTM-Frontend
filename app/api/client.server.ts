@@ -28,11 +28,37 @@ type ApiFetchOptions = RequestInit & {
   token?: string;
 };
 
+/**
+ * 개발 중에만 호출 내역을 터미널에 찍는다.
+ *
+ * loader 는 서버에서 돌기 때문에 백엔드로 나가는 요청이 **브라우저 Network 탭에
+ * 뜨지 않는다.** 여기서 찍지 않으면 어디로 뭘 보냈는지 볼 방법이 없다.
+ *
+ * 토큰과 요청 본문은 찍지 않는다 — 터미널 기록과 스크린샷으로 새어 나간다.
+ */
+const logging = process.env.NODE_ENV !== "production";
+
+function logRequest(
+  method: string,
+  url: string,
+  status: number,
+  ms: number,
+  failure?: ErrorInfo,
+) {
+  // 백엔드는 실패를 200 + success:false 로도 준다. 상태 코드만 찍으면 성공처럼 보인다.
+  const tail = failure ? ` ${failure.code ?? "FAILED"}` : "";
+  console.log(
+    `→ ${method} ${url}\n${failure ? "✗" : "←"} ${status}${tail} (${Math.round(ms)}ms)`,
+  );
+}
+
 export async function apiFetch<T>(
   path: string,
   { token, ...init }: ApiFetchOptions = {},
 ): Promise<T> {
   const url = `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
+  const method = init.method ?? "GET";
+  const startedAt = performance.now();
 
   const response = await fetch(url, {
     ...init,
@@ -47,8 +73,19 @@ export async function apiFetch<T>(
   // 본문이 없거나(204) JSON 이 아닌 응답도 온다. 파싱 실패를 그대로 터뜨리면
   // 정작 원인인 상태 코드가 묻힌다.
   const body = (await response.json().catch(() => null)) as RsData<T> | null;
+  const failed = !response.ok || body?.success === false;
 
-  if (!response.ok || body?.success === false) {
+  if (logging) {
+    logRequest(
+      method,
+      url,
+      response.status,
+      performance.now() - startedAt,
+      failed ? (body?.error ?? {}) : undefined,
+    );
+  }
+
+  if (failed) {
     throw new ApiError(response.status, url, body?.error);
   }
 
