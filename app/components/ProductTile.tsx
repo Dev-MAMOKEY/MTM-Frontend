@@ -13,11 +13,14 @@ const SIZES = {
 export function ProductTile({
   name,
   price,
+  imageUrl,
   size = "compact",
   onClick,
 }: {
   name: string;
-  price: string;
+  /** 통화가 없으면 값이 없다. 자리를 비우지 않고 표시만 비운다. */
+  price?: string;
+  imageUrl?: string;
   size?: keyof typeof SIZES;
   onClick?: () => void;
 }) {
@@ -30,14 +33,26 @@ export function ProductTile({
       style={{ width }}
       className="flex shrink-0 flex-col gap-[6px] text-left focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-border-emphasis"
     >
-      <span
-        style={{ width, height }}
-        className="border border-solid border-border-default bg-surface-track"
-      />
+      {imageUrl ? (
+        <img
+          src={imageUrl}
+          // 제품명이 바로 아래 붙어 있어 alt 로 되풀이하면 스크린리더가 두 번 읽는다.
+          alt=""
+          loading="lazy"
+          style={{ width, height }}
+          className="border border-solid border-border-default bg-surface-track object-contain"
+        />
+      ) : (
+        // 이미지가 없어도 자리는 지킨다 — 없다고 격자가 흐트러지면 훑기가 더 어려워진다
+        <span
+          style={{ width, height }}
+          className="border border-solid border-border-default bg-surface-track"
+        />
+      )}
       <span style={{ width }} className="truncate text-caption text-text-primary">
         {name}
       </span>
-      <span className="text-caption text-text-secondary">{price}</span>
+      <span className="text-caption text-text-secondary">{price ?? ""}</span>
     </button>
   );
 }

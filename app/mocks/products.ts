@@ -1,16 +1,11 @@
 /**
- * 목록 API(슬라이스 1)가 붙기 전까지 쓰는 목 데이터. Figma 시안의 값 그대로다.
+ * 목 데이터. Figma 시안의 값 그대로다.
  *
- * ⚠ 아래 타입은 실제 API 스키마(`app/api/types.ts` 의 `Product`)와 다르다.
- * `npm run gen:api` 로 받아온 `ProductResponse` 와 대조한 결과 — 교체는 #1에서 한다.
+ * 제품 목록 화면(`/products`)은 #1에서 실제 API 로 갈아탔다. **남은 사용처는
+ * 착용 화면(`/`)의 Z3 타일 하나뿐**이고, 그건 슬라이스 6에서 걷어낸다.
  *
- * | 목 | 실제 API | 메모 |
- * |---|---|---|
- * | `price: string` (`"$1,250"`) | `price: number` + `currency: "KRW" \| "USD"` | 포맷팅을 화면에서 해야 한다 |
- * | 없음 | `id: number` | 상세 조회 키가 `sku` 가 아니라 `id` 일 수 있다 |
- * | 없음 | `frontCutUrl: string` | 제품 이미지. 지금 타일은 회색 박스다 |
- *
- * 게다가 `ProductResponse` 는 모든 필드가 optional 이라 그대로 쓰면 전부 `| undefined` 다.
+ * 실제 스키마(`app/api/product.ts` 의 `ListedProduct`)와 다르다는 점에 주의한다 —
+ * 가격이 여기서는 포맷된 문자열(`"$1,250"`)이고, `id` 와 이미지가 없다.
  */
 export type Product = {
   sku: string;
