@@ -73,7 +73,9 @@ export default function Profile({
   const navigation = useNavigation();
 
   const heightError = validate(height, 100, 250, "키");
-  const weightError = validate(weight, 30, 200, "몸무게");
+  // 범위는 백엔드 BodyInfoRequestDTO 의 제약과 맞춘다. 화면이 더 좁으면
+  // 서버가 받아주는 값을 화면이 거절해 저장할 방법이 없어진다.
+  const weightError = validate(weight, 30, 300, "몸무게");
 
   const saving = navigation.state === "submitting";
   const canSave =
