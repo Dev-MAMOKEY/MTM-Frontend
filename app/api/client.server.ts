@@ -65,7 +65,11 @@ export async function apiFetch<T>(
     headers: {
       Accept: "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(init.body ? { "Content-Type": "application/json" } : {}),
+      // FormData 는 Content-Type 을 직접 붙이면 안 된다. 멀티파트 경계(boundary)를
+      // fetch 가 만들어 붙이는데, 여기서 덮으면 경계가 빠져 서버가 본문을 못 읽는다.
+      ...(typeof init.body === "string"
+        ? { "Content-Type": "application/json" }
+        : {}),
       ...init.headers,
     },
   });
