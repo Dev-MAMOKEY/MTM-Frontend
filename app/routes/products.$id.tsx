@@ -83,20 +83,23 @@ function Detail({ detail }: { detail: ProductDetailView }) {
     <div className="flex w-full flex-1 items-start">
       {/* 좌 — 제품 컷 */}
       <div className="flex h-full min-w-px flex-1 flex-col gap-3 border-r border-solid border-border-default px-10 py-7">
+        {/* 컷 원본이 거의 정사각이다. 가로로만 넓은 칸에 object-contain 을 쓰면 짧은 쪽인
+            높이에 맞춰져서, 칸을 아무리 넓혀도 이미지는 커지지 않고 좌우 여백만 늘어난다.
+            칸을 정사각으로 두고 폭 상한을 줘서 이미지가 실제로 커지게 한다. */}
         {cut ? (
           <img
             src={cut.imageUrl}
             alt=""
-            className="h-[560px] w-full border border-solid border-border-default bg-surface-base object-contain"
+            className="mx-auto aspect-square w-full max-w-[720px] border border-solid border-border-default bg-surface-base object-contain"
           />
         ) : (
-          <div className="flex h-[560px] w-full flex-col items-center justify-center border border-solid border-border-default bg-surface-track text-[11px] text-text-tertiary">
+          <div className="mx-auto flex aspect-square w-full max-w-[720px] flex-col items-center justify-center border border-solid border-border-default bg-surface-track text-[11px] text-text-tertiary">
             제품 컷
           </div>
         )}
         {/* 컷이 1장뿐이면 이 줄을 감춘다 — 빈 줄을 남기지 않는다 */}
         {detail.cuts.length > 1 ? (
-          <div className="flex gap-2">
+          <div className="mx-auto flex w-full max-w-[720px] gap-2">
             {detail.cuts.map((thumb, i) => (
               <button
                 key={thumb.id}
