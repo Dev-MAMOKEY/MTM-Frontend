@@ -1,9 +1,7 @@
-import { CarryModeTag } from "./CarryModeTag";
-
 /**
- * 제품 타일. 놓이는 자리에 따라 크기와 태그 노출이 다르다.
- * - compact — 착용 화면 Z3. 컷 124×114, 태그 없음 (Figma 3:38)
- * - large   — 제품 목록. 컷 325×299, 태그 있음 (Figma 10:12)
+ * 제품 타일. 놓이는 자리에 따라 크기가 다르다.
+ * - compact — 착용 화면 Z3. 컷 124×114 (Figma 3:38)
+ * - large   — 제품 목록. 컷 325×299 (Figma 10:12)
  *
  * 이름은 긴 한국어명도 줄바꿈 없이 한 줄로 자른다.
  */
@@ -15,13 +13,11 @@ const SIZES = {
 export function ProductTile({
   name,
   price,
-  carryMode,
   size = "compact",
   onClick,
 }: {
   name: string;
   price: string;
-  carryMode?: string;
   size?: keyof typeof SIZES;
   onClick?: () => void;
 }) {
@@ -41,11 +37,6 @@ export function ProductTile({
       <span style={{ width }} className="truncate text-caption text-text-primary">
         {name}
       </span>
-      {carryMode ? (
-        <span>
-          <CarryModeTag>{carryMode}</CarryModeTag>
-        </span>
-      ) : null}
       <span className="text-caption text-text-secondary">{price}</span>
     </button>
   );

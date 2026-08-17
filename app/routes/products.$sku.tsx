@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router";
 
-import { CarryModeTag } from "../components/CarryModeTag";
 import { Header } from "../components/Header";
 import { OutlineButton } from "../components/OutlineButton";
 import type { Route } from "./+types/products.$sku";
@@ -14,7 +13,6 @@ export function meta({}: Route.MetaArgs) {
 const detail = {
   name: "Aren Zip Hobo in Visetos",
   price: "$1,250",
-  carryMode: "한쪽 어깨",
   cutCount: 6,
   dimensions: [
     { label: "가로", value: "14.2 in  (36.1 cm)" },
@@ -77,9 +75,6 @@ export default function ProductDetail() {
         <div className="flex h-full w-[380px] shrink-0 flex-col gap-[10px] p-7">
           <h1 className="text-[20px] font-bold text-text-primary">{detail.name}</h1>
           <p className="text-body text-text-secondary">{detail.price}</p>
-          <div>
-            <CarryModeTag>{detail.carryMode}</CarryModeTag>
-          </div>
 
           <div className="h-[10px]" />
           <h2 className="text-[14px] font-medium text-text-secondary">크기</h2>
