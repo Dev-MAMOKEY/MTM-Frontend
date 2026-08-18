@@ -8,6 +8,11 @@ import { Header } from "../components/Header";
 import { OutlineButton } from "../components/OutlineButton";
 import { PageTitle } from "../components/PageTitle";
 import { PhotoCard } from "../components/PhotoCard";
+import {
+  createBaseImage,
+  getWornImages,
+  regenerateBaseImage,
+} from "../api/base-images.server";
 import { deletePhoto, getPhotos, uploadPhoto } from "../api/photos.server";
 import { requireAccessToken } from "../api/session.server";
 import type { Route } from "./+types/photos";
@@ -29,8 +34,8 @@ function formatUploadedAt(createdAt: string | undefined) {
     : `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")} 올림`;
 }
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const token = await requireAccessToken(request);
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const token = await requireAccessToken(request, context);
 
   // 이미지 없는 사진은 카드로 그릴 게 없다.
   const photos = (await getPhotos(token)).flatMap((photo) =>
@@ -40,28 +45,52 @@ export async function loader({ request }: Route.LoaderArgs) {
           {
             id: photo.id,
             imageUrl: photo.imageUrl,
+            baseImageId: photo.baseImage?.id,
             baseImageUrl: photo.baseImage?.imageUrl,
             meta: formatUploadedAt(photo.createdAt),
           },
         ],
   );
 
-  return { photos };
+  // 「다시 만들면 착용 이미지 N장이 함께 삭제됩니다」의 N. 사진마다 한 번씩 물어야 해서
+  // 나란히 보낸다 — 사진은 내가 올린 것뿐이라 수가 적다.
+  // 장수를 못 세는 것으로 화면 전체를 죽이지 않는다. 실패하면 숫자 없는 문장으로 둔다.
+  const lookCounts = await Promise.all(
+    photos.map((photo) =>
+      photo.baseImageId == null
+        ? Promise.resolve(0)
+        : getWornImages(token, photo.baseImageId)
+            .then((wornImages) => wornImages.length)
+            .catch(() => 0),
+    ),
+  );
+
+  return {
+    photos: photos.map((photo, i) => ({ ...photo, lookCount: lookCounts[i] })),
+  };
 }
 
-export async function action({ request }: Route.ActionArgs) {
-  const token = await requireAccessToken(request);
+export async function action({ request, context }: Route.ActionArgs) {
+  const token = await requireAccessToken(request, context);
   const form = await request.formData();
 
+  const intent = form.get("intent");
+
   try {
-    if (form.get("intent") === "delete") {
+    if (intent === "delete" || intent === "create-base-image" || intent === "regenerate-base-image") {
       const photoId = Number(form.get("photoId"));
 
       if (!Number.isInteger(photoId)) {
         return { error: "사진을 찾을 수 없습니다." };
       }
 
-      await deletePhoto(token, photoId);
+      if (intent === "delete") {
+        await deletePhoto(token, photoId);
+      } else if (intent === "create-base-image") {
+        await createBaseImage(token, photoId);
+      } else {
+        await regenerateBaseImage(token, photoId);
+      }
     } else {
       const file = form.get("file");
 
@@ -139,11 +168,9 @@ export default function Photos({ loaderData }: Route.ComponentProps) {
               <PhotoCard
                 key={photo.id}
                 photoId={photo.id}
-                // 생성 중·실패는 만드는 동안에만 있는 상태라 슬라이스 5에서 다룬다.
-                // 목록에서는 기준 이미지가 있느냐 없느냐만 안다.
-                state={photo.baseImageUrl ? "done" : "none"}
                 imageUrl={photo.imageUrl}
                 baseImageUrl={photo.baseImageUrl}
+                lookCount={photo.lookCount}
                 meta={photo.meta}
               />
             ))}

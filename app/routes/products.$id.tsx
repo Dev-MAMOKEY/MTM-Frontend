@@ -15,8 +15,8 @@ export function meta({ loaderData }: Route.MetaArgs) {
   return [{ title: `${loaderData?.detail?.name ?? "제품 상세"} · MTM` }];
 }
 
-export async function loader({ request, params }: Route.LoaderArgs) {
-  const token = await requireAccessToken(request);
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const token = await requireAccessToken(request, context);
   const id = Number(params.id);
 
   // 주소는 손으로 고칠 수 있다. 숫자가 아니면 백엔드에 물어볼 것도 없다.

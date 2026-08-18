@@ -5,10 +5,12 @@
 export function PhotoThumb({
   selected = false,
   label,
+  imageUrl,
   onClick,
 }: {
   selected?: boolean;
   label: string;
+  imageUrl?: string;
   onClick?: () => void;
 }) {
   return (
@@ -18,12 +20,21 @@ export function PhotoThumb({
       aria-label={label}
       aria-pressed={selected}
       className={
-        "size-[64px] shrink-0 bg-surface-track focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-border-emphasis " +
+        "size-[64px] shrink-0 overflow-hidden bg-surface-track focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-border-emphasis " +
         (selected
           ? "border-2 border-solid border-border-emphasis"
           : "border border-solid border-border-default")
       }
-    />
+    >
+      {imageUrl ? (
+        <img
+          src={imageUrl}
+          alt=""
+          loading="lazy"
+          className="size-full object-cover"
+        />
+      ) : null}
+    </button>
   );
 }
 

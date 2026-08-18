@@ -25,8 +25,8 @@ function parsePage(value: string | null) {
   return Number.isInteger(page) && page > 0 ? page : 1;
 }
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const token = await requireAccessToken(request);
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const token = await requireAccessToken(request, context);
   const page = parsePage(new URL(request.url).searchParams.get("page"));
 
   try {

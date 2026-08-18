@@ -8,25 +8,28 @@ import { ProgressBar } from "./ProgressBar";
  * 카드 셸은 하나고 우측 영역만 상태별로 바뀐다.
  * 원본과 기준 이미지를 나란히 두는 이유는 "내 얼굴이 맞나"를 대조로 판정하기 때문이다.
  * (Figma 8:12 완료 · 8:26 생성 중 · 8:35 실패)
+ *
+ * 서버가 아는 상태는 기준 이미지가 **있느냐 없느냐**뿐이다. 생성 중·실패는 요청이
+ * 도는 동안에만 있는 상태라 카드가 직접 들고 있는다.
  */
-export type PhotoCardState = "none" | "done" | "generating" | "failed";
-
 export function PhotoCard({
   photoId,
-  state,
   meta,
   imageUrl,
   baseImageUrl,
   lookCount = 0,
 }: {
   photoId: number;
-  /** `none` — 기준 이미지를 아직 만들지 않았다. */
-  state: PhotoCardState;
   meta: string;
   imageUrl?: string;
   baseImageUrl?: string;
   lookCount?: number;
 }) {
+  const baseImage = useFetcher<{ error: string | null }>();
+
+  const generating = baseImage.state !== "idle";
+  const failure = baseImage.data?.error;
+
   return (
     <article className="flex w-[440px] flex-col gap-[10px] border border-solid border-border-default p-[14px]">
       <div className="flex w-full items-start gap-[10px]">
@@ -42,57 +45,96 @@ export function PhotoCard({
             원본 사진
           </div>
         )}
-        {state === "none" ? (
-          <div className="flex h-[200px] min-w-px flex-1 flex-col items-center justify-center border border-dashed border-border-strong bg-surface-muted text-[11px] text-text-tertiary">
-            기준 이미지 없음
+
+        {generating ? (
+          <div className="flex h-[200px] min-w-px flex-1 flex-col items-center justify-center gap-2 border border-dashed border-border-strong bg-surface-muted">
+            <ProgressBar
+              label="기준 이미지를 만드는 중"
+              width={120}
+              className="items-center gap-2"
+            />
           </div>
-        ) : state === "done" && baseImageUrl ? (
+        ) : failure ? (
+          // 문구는 시안 그대로 둔다. 백엔드 메시지를 그대로 띄우면 IMAGE_GENERATION_ERROR
+          // 같은 내부 사정이 사용자에게 새고, 문구 길이도 카드 규격을 넘긴다.
+          <div className="flex h-[200px] min-w-px flex-1 flex-col items-center justify-center gap-2 border border-dashed border-border-strong bg-surface-muted px-3 text-center text-[11px] text-text-tertiary">
+            만들지 못했습니다
+            <BaseImageButton
+              fetcher={baseImage}
+              photoId={photoId}
+              intent={baseImageUrl ? "regenerate-base-image" : "create-base-image"}
+            >
+              다시 시도
+            </BaseImageButton>
+          </div>
+        ) : baseImageUrl ? (
           <img
             src={baseImageUrl}
             alt=""
             loading="lazy"
             className="h-[200px] min-w-px flex-1 border border-solid border-border-default bg-surface-base object-cover"
           />
-        ) : state === "done" ? (
-          <div className="flex h-[200px] min-w-px flex-1 flex-col items-center justify-center border border-solid border-border-default bg-surface-track text-[11px] text-text-tertiary">
-            기준 이미지
-          </div>
         ) : (
-          <div className="flex h-[200px] min-w-px flex-1 flex-col items-center justify-center gap-2 border border-dashed border-border-strong bg-surface-muted text-[11px] text-text-tertiary">
-            {state === "generating" ? (
-              <ProgressBar
-                value={70}
-                label="기준 이미지를 만드는 중"
-                width={120}
-                className="items-center gap-2"
-              />
-            ) : (
-              <>
-                만들지 못했습니다
-                <OutlineButton type="button">다시 시도</OutlineButton>
-              </>
-            )}
+          <div className="flex h-[200px] min-w-px flex-1 flex-col items-center justify-center gap-2 border border-dashed border-border-strong bg-surface-muted px-3 text-center text-[11px] text-text-tertiary">
+            기준 이미지 없음
+            <BaseImageButton
+              fetcher={baseImage}
+              photoId={photoId}
+              intent="create-base-image"
+            >
+              기준 이미지 만들기
+            </BaseImageButton>
           </div>
         )}
       </div>
 
       <p className="text-[11px] text-text-tertiary">{meta}</p>
 
-      <DeleteControl photoId={photoId} />
-
-      {state === "done" ? (
+      {baseImageUrl && !generating ? (
         <>
           <div className="flex items-center gap-2">
-            <OutlineButton type="button">기준 이미지 다시 만들기</OutlineButton>
+            <BaseImageButton
+              fetcher={baseImage}
+              photoId={photoId}
+              intent="regenerate-base-image"
+            >
+              기준 이미지 다시 만들기
+            </BaseImageButton>
           </div>
           {/* 파괴적 동작이므로 무엇이 사라지는지 누르기 전에 알린다 */}
           <p className="w-full border-l-2 border-solid border-border-emphasis pl-2 text-[11px] text-text-secondary">
-            다시 만들면 이 사진으로 만든 착용 이미지 {lookCount}장이 함께
-            삭제됩니다.
+            {lookCount > 0
+              ? `다시 만들면 이 사진으로 만든 착용 이미지 ${lookCount}장이 함께 삭제됩니다.`
+              : "다시 만들면 이 사진으로 만든 착용 이미지가 함께 삭제됩니다."}
           </p>
         </>
       ) : null}
+
+      <DeleteControl photoId={photoId} />
     </article>
+  );
+}
+
+/** 기준 이미지 생성·재생성 제출 버튼. 같은 fetcher 를 공유해 상태가 한 곳에서만 바뀐다. */
+function BaseImageButton({
+  fetcher,
+  photoId,
+  intent,
+  children,
+}: {
+  fetcher: ReturnType<typeof useFetcher<{ error: string | null }>>;
+  photoId: number;
+  intent: "create-base-image" | "regenerate-base-image";
+  children: React.ReactNode;
+}) {
+  return (
+    <fetcher.Form method="post">
+      <input type="hidden" name="intent" value={intent} />
+      <input type="hidden" name="photoId" value={photoId} />
+      <OutlineButton type="submit" disabled={fetcher.state !== "idle"}>
+        {children}
+      </OutlineButton>
+    </fetcher.Form>
   );
 }
 

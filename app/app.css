@@ -32,6 +32,19 @@
   --text-button--font-weight: 500;
   --text-button--letter-spacing: 1px;
   --text-caption: 12px;
+
+  /* 생성 요청은 동기라 진행률을 알 수 없다. 막대가 트랙을 왕복해 "돌고 있다"만 말한다.
+     시안에 없는 움직임이지만, 70%에 멈춰 있는 막대는 알지 못하는 것을 아는 척한다. */
+  --animate-indeterminate: indeterminate 1.4s ease-in-out infinite;
+}
+
+@keyframes indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
 }
 
 html,

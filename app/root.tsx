@@ -7,8 +7,41 @@ import {
   ScrollRestoration,
 } from "react-router";
 
+import {
+  authContext,
+  commitAuthState,
+  readAuthState,
+} from "./api/session.server";
 import type { Route } from "./+types/root";
 import "./app.css";
+
+/**
+ * 요청 하나가 도는 동안 토큰을 들고 있는다.
+ *
+ * 액세스 토큰이 만료되면 `requireAccessToken` 이 리프레시 토큰으로 새로 받는데,
+ * 새 토큰은 **쿠키를 다시 구워야** 다음 요청부터 쓸 수 있다. Set-Cookie 를 붙일
+ * 자리는 응답이라 loader 안에서는 붙일 수 없다 — 여기서 응답을 받아 붙인다.
+ *
+ * 모든 화면이 root 아래에 있으므로 여기 한 번만 두면 전부 덮인다.
+ */
+export const middleware: Route.MiddlewareFunction[] = [
+  async ({ request, context }, next) => {
+    const state = await readAuthState(request);
+    context.set(authContext, state);
+
+    const response = await next();
+
+    if (state.refreshed) {
+      // append 다. 로그인·로그아웃처럼 응답이 이미 쿠키를 굽는 경우와 겹치지 않게.
+      response.headers.append(
+        "Set-Cookie",
+        await commitAuthState(request, state),
+      );
+    }
+
+    return response;
+  },
+];
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
