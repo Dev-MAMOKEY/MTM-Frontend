@@ -10,6 +10,7 @@ import { PageTitle } from "../components/PageTitle";
 import { PhotoCard } from "../components/PhotoCard";
 import {
   createBaseImage,
+  getWornImages,
   regenerateBaseImage,
 } from "../api/base-images.server";
 import { deletePhoto, getPhotos, uploadPhoto } from "../api/photos.server";
@@ -44,13 +45,29 @@ export async function loader({ request }: Route.LoaderArgs) {
           {
             id: photo.id,
             imageUrl: photo.imageUrl,
+            baseImageId: photo.baseImage?.id,
             baseImageUrl: photo.baseImage?.imageUrl,
             meta: formatUploadedAt(photo.createdAt),
           },
         ],
   );
 
-  return { photos };
+  // 「다시 만들면 착용 이미지 N장이 함께 삭제됩니다」의 N. 사진마다 한 번씩 물어야 해서
+  // 나란히 보낸다 — 사진은 내가 올린 것뿐이라 수가 적다.
+  // 장수를 못 세는 것으로 화면 전체를 죽이지 않는다. 실패하면 숫자 없는 문장으로 둔다.
+  const lookCounts = await Promise.all(
+    photos.map((photo) =>
+      photo.baseImageId == null
+        ? Promise.resolve(0)
+        : getWornImages(token, photo.baseImageId)
+            .then((wornImages) => wornImages.length)
+            .catch(() => 0),
+    ),
+  );
+
+  return {
+    photos: photos.map((photo, i) => ({ ...photo, lookCount: lookCounts[i] })),
+  };
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -153,6 +170,7 @@ export default function Photos({ loaderData }: Route.ComponentProps) {
                 photoId={photo.id}
                 imageUrl={photo.imageUrl}
                 baseImageUrl={photo.baseImageUrl}
+                lookCount={photo.lookCount}
                 meta={photo.meta}
               />
             ))}

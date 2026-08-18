@@ -5,7 +5,15 @@
  * 요청이 진행 중인지로만 「만드는 중」을 안다.
  */
 import { apiFetch } from "./client.server";
-import type { BaseImage } from "./types";
+import type { BaseImage, WornImage } from "./types";
+
+/** 최신순으로 온다. */
+export function getWornImages(token: string, baseImageId: number) {
+  return apiFetch<WornImage[]>(
+    `/api/v1/base-images/${baseImageId}/worn-images`,
+    { token },
+  );
+}
 
 /** 최신순으로 온다. */
 export function getBaseImages(token: string) {
