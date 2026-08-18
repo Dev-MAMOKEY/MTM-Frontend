@@ -15,8 +15,8 @@ import { getPhotos } from "../api/photos.server";
 import { requireAccessToken } from "../api/session.server";
 import type { Route } from "./+types/home";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const token = await requireAccessToken(request);
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const token = await requireAccessToken(request, context);
   const [me, allPhotos] = await Promise.all([getMe(token), getPhotos(token)]);
 
   // 신체 정보 없이는 착용 이미지를 만들 수 없다. 첫 로그인이면 여기서 설정으로 보낸다.

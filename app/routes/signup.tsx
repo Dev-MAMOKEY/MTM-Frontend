@@ -3,7 +3,7 @@ import { Form, Link, redirect, useNavigation } from "react-router";
 
 import { signup } from "../api/auth.server";
 import { ApiError } from "../api/client.server";
-import { getAccessToken } from "../api/session.server";
+import { hasSession } from "../api/session.server";
 import { FieldError } from "../components/FieldError";
 import { FieldInput } from "../components/FieldInput";
 import { OutlineButton } from "../components/OutlineButton";
@@ -17,8 +17,8 @@ export function meta({}: Route.MetaArgs) {
 const PASSWORD_MIN = 8;
 const PASSWORD_MAX = 20;
 
-export async function loader({ request }: Route.LoaderArgs) {
-  if (await getAccessToken(request)) {
+export async function loader({ request, context }: Route.LoaderArgs) {
+  if (hasSession(context)) {
     throw redirect("/");
   }
 

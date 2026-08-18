@@ -34,8 +34,8 @@ function formatUploadedAt(createdAt: string | undefined) {
     : `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")} 올림`;
 }
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const token = await requireAccessToken(request);
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const token = await requireAccessToken(request, context);
 
   // 이미지 없는 사진은 카드로 그릴 게 없다.
   const photos = (await getPhotos(token)).flatMap((photo) =>
@@ -70,8 +70,8 @@ export async function loader({ request }: Route.LoaderArgs) {
   };
 }
 
-export async function action({ request }: Route.ActionArgs) {
-  const token = await requireAccessToken(request);
+export async function action({ request, context }: Route.ActionArgs) {
+  const token = await requireAccessToken(request, context);
   const form = await request.formData();
 
   const intent = form.get("intent");

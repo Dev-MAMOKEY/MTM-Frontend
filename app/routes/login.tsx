@@ -3,7 +3,7 @@ import { Form, Link, redirect, useNavigation } from "react-router";
 
 import { ApiError } from "../api/client.server";
 import { login } from "../api/auth.server";
-import { createUserSession, getAccessToken } from "../api/session.server";
+import { createUserSession, hasSession } from "../api/session.server";
 import { FieldError } from "../components/FieldError";
 import { FieldInput } from "../components/FieldInput";
 import { OutlineButton } from "../components/OutlineButton";
@@ -14,8 +14,8 @@ export function meta({}: Route.MetaArgs) {
 }
 
 /** 이미 로그인한 사람에게 로그인 화면을 보여줄 이유가 없다. */
-export async function loader({ request }: Route.LoaderArgs) {
-  if (await getAccessToken(request)) {
+export async function loader({ request, context }: Route.LoaderArgs) {
+  if (hasSession(context)) {
     throw redirect("/");
   }
 

@@ -12,8 +12,8 @@ import { SectionTitle } from "../components/SectionTitle";
 import { requireAccessToken } from "../api/session.server";
 import type { Route } from "./+types/profile";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const token = await requireAccessToken(request);
+export async function loader({ request, context }: Route.LoaderArgs) {
+  const token = await requireAccessToken(request, context);
   const me = await getMe(token);
 
   // 첫 설정인지는 주소가 아니라 실제 데이터로 판단한다. ?setup=1 만 믿으면
@@ -33,8 +33,8 @@ export function meta({}: Route.MetaArgs) {
   return [{ title: "내 정보 · MTM" }];
 }
 
-export async function action({ request }: Route.ActionArgs) {
-  const token = await requireAccessToken(request);
+export async function action({ request, context }: Route.ActionArgs) {
+  const token = await requireAccessToken(request, context);
   const form = await request.formData();
   const heightCm = Number(form.get("height"));
   const weightKg = Number(form.get("weight"));
