@@ -55,8 +55,10 @@ export function PhotoCard({
             />
           </div>
         ) : failure ? (
+          // 문구는 시안 그대로 둔다. 백엔드 메시지를 그대로 띄우면 IMAGE_GENERATION_ERROR
+          // 같은 내부 사정이 사용자에게 새고, 문구 길이도 카드 규격을 넘긴다.
           <div className="flex h-[200px] min-w-px flex-1 flex-col items-center justify-center gap-2 border border-dashed border-border-strong bg-surface-muted px-3 text-center text-[11px] text-text-tertiary">
-            {failure}
+            만들지 못했습니다
             <BaseImageButton
               fetcher={baseImage}
               photoId={photoId}
