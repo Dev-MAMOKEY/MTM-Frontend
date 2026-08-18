@@ -3,6 +3,7 @@ import { Link, redirect, useFetcher, useNavigate } from "react-router";
 
 import { SpecTag } from "../components/SpecTag";
 import { EmptyState } from "../components/EmptyState";
+import { FieldError } from "../components/FieldError";
 import { Header } from "../components/Header";
 import { IconButton } from "../components/IconButton";
 import { OutlineButton } from "../components/OutlineButton";
@@ -11,6 +12,7 @@ import { ProductTile } from "../components/ProductTile";
 import { ProgressBar } from "../components/ProgressBar";
 import { products, totalProductCount } from "../mocks/products";
 import { getMe, hasBodyInfo } from "../api/members.server";
+import { ACCEPT_ATTRIBUTE } from "../api/photo";
 import { getPhotos } from "../api/photos.server";
 import { requireAccessToken } from "../api/session.server";
 import type { Route } from "./+types/home";
@@ -67,7 +69,7 @@ type LookState =
 export default function Home({ loaderData }: Route.ComponentProps) {
   const { photos, selected } = loaderData;
   const navigate = useNavigate();
-  const upload = useFetcher();
+  const upload = useFetcher<{ error: string | null }>();
   const baseImage = useFetcher();
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -119,7 +121,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         <input
           ref={fileInput}
           type="file"
-          accept="image/*"
+          accept={ACCEPT_ATTRIBUTE}
           className="hidden"
           onChange={(e) => {
             const file = e.target.files?.[0];
@@ -143,6 +145,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             className="items-start gap-[6px]"
           />
         ) : null}
+        {/* 올리기가 거절되면 여기서 알린다 — 없으면 아무 일도 안 일어난 것처럼 보인다 */}
+        {upload.data?.error ? <FieldError>{upload.data.error}</FieldError> : null}
         {/* 고른 사진에 기준 이미지가 없으면 여기서 만든다 — 없으면 착용 이미지도 못 만든다 */}
         {selected && !selected.baseImageId && !generatingBase ? (
           <baseImage.Form method="post" action="/photos">

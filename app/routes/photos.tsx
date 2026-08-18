@@ -13,6 +13,11 @@ import {
   getWornImages,
   regenerateBaseImage,
 } from "../api/base-images.server";
+import {
+  ACCEPTED_IMAGE_LABEL,
+  ACCEPT_ATTRIBUTE,
+  isAcceptedImage,
+} from "../api/photo";
 import { deletePhoto, getPhotos, uploadPhoto } from "../api/photos.server";
 import { requireAccessToken } from "../api/session.server";
 import type { Route } from "./+types/photos";
@@ -98,6 +103,13 @@ export async function action({ request, context }: Route.ActionArgs) {
         return { error: "사진 파일을 선택해 주세요." };
       }
 
+      // accept 는 선택창의 기본 필터일 뿐이라 우회할 수 있다. 여기서 한 번 더 본다.
+      if (!isAcceptedImage(file)) {
+        return {
+          error: `${ACCEPTED_IMAGE_LABEL} 파일만 올릴 수 있습니다. 다른 형식은 기준 이미지를 만들 수 없습니다.`,
+        };
+      }
+
       await uploadPhoto(token, file);
     }
   } catch (error) {
@@ -133,7 +145,7 @@ export default function Photos({ loaderData }: Route.ComponentProps) {
               ref={fileInput}
               type="file"
               name="file"
-              accept="image/*"
+              accept={ACCEPT_ATTRIBUTE}
               className="hidden"
               // 고른 즉시 올린다 — 「선택」과 「올리기」를 두 번 누르게 할 이유가 없다
               onChange={(e) => {
