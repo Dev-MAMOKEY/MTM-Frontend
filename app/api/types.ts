@@ -31,6 +31,8 @@ export type Dimensions = Schemas["DimensionsResponse"];
 /** 착용 방식. 목록 응답에는 없고 상세 응답에만 있다. */
 export type WearType = NonNullable<ProductDetail["wearType"]>;
 export type Photo = Schemas["PhotoResponse"];
+export type BaseImage = Schemas["BaseImageResponse"];
+export type WornImage = Schemas["WornImageResponse"];
 export type Member = Schemas["MemberResponseDTO"];
 export type Token = Schemas["TokenResponseDTO"];
 
