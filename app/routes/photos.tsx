@@ -8,7 +8,7 @@ import { Header } from "../components/Header";
 import { OutlineButton } from "../components/OutlineButton";
 import { PageTitle } from "../components/PageTitle";
 import { PhotoCard } from "../components/PhotoCard";
-import { getPhotos, uploadPhoto } from "../api/photos.server";
+import { deletePhoto, getPhotos, uploadPhoto } from "../api/photos.server";
 import { requireAccessToken } from "../api/session.server";
 import type { Route } from "./+types/photos";
 
@@ -51,24 +51,36 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export async function action({ request }: Route.ActionArgs) {
   const token = await requireAccessToken(request);
-  const file = (await request.formData()).get("file");
-
-  if (!(file instanceof File) || file.size === 0) {
-    return { error: "사진 파일을 선택해 주세요." };
-  }
+  const form = await request.formData();
 
   try {
-    await uploadPhoto(token, file);
+    if (form.get("intent") === "delete") {
+      const photoId = Number(form.get("photoId"));
+
+      if (!Number.isInteger(photoId)) {
+        return { error: "사진을 찾을 수 없습니다." };
+      }
+
+      await deletePhoto(token, photoId);
+    } else {
+      const file = form.get("file");
+
+      if (!(file instanceof File) || file.size === 0) {
+        return { error: "사진 파일을 선택해 주세요." };
+      }
+
+      await uploadPhoto(token, file);
+    }
   } catch (error) {
     if (error instanceof ApiError) {
-      return { error: error.message || "사진을 올리지 못했습니다." };
+      return { error: error.message || "요청을 처리하지 못했습니다." };
     }
 
     throw error;
   }
 
-  // 이동하지 않는다. 올린 사진이 이 화면에 쌓이는 것을 보여주는 게 이 흐름의 요점이고,
-  // fetcher 가 끝나면 loader 가 다시 돌아 새 사진이 목록에 들어온다.
+  // 이동하지 않는다. 사진이 이 화면에서 쌓이고 사라지는 것을 보여주는 게 요점이고,
+  // fetcher 가 끝나면 loader 가 다시 돌아 목록이 갱신된다.
   return { error: null };
 }
 
@@ -126,6 +138,7 @@ export default function Photos({ loaderData }: Route.ComponentProps) {
             {photos.map((photo) => (
               <PhotoCard
                 key={photo.id}
+                photoId={photo.id}
                 // 생성 중·실패는 만드는 동안에만 있는 상태라 슬라이스 5에서 다룬다.
                 // 목록에서는 기준 이미지가 있느냐 없느냐만 안다.
                 state={photo.baseImageUrl ? "done" : "none"}
