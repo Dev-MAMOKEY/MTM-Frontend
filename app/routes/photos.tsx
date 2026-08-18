@@ -8,6 +8,10 @@ import { Header } from "../components/Header";
 import { OutlineButton } from "../components/OutlineButton";
 import { PageTitle } from "../components/PageTitle";
 import { PhotoCard } from "../components/PhotoCard";
+import {
+  createBaseImage,
+  regenerateBaseImage,
+} from "../api/base-images.server";
 import { deletePhoto, getPhotos, uploadPhoto } from "../api/photos.server";
 import { requireAccessToken } from "../api/session.server";
 import type { Route } from "./+types/photos";
@@ -53,15 +57,23 @@ export async function action({ request }: Route.ActionArgs) {
   const token = await requireAccessToken(request);
   const form = await request.formData();
 
+  const intent = form.get("intent");
+
   try {
-    if (form.get("intent") === "delete") {
+    if (intent === "delete" || intent === "create-base-image" || intent === "regenerate-base-image") {
       const photoId = Number(form.get("photoId"));
 
       if (!Number.isInteger(photoId)) {
         return { error: "사진을 찾을 수 없습니다." };
       }
 
-      await deletePhoto(token, photoId);
+      if (intent === "delete") {
+        await deletePhoto(token, photoId);
+      } else if (intent === "create-base-image") {
+        await createBaseImage(token, photoId);
+      } else {
+        await regenerateBaseImage(token, photoId);
+      }
     } else {
       const file = form.get("file");
 
@@ -139,9 +151,6 @@ export default function Photos({ loaderData }: Route.ComponentProps) {
               <PhotoCard
                 key={photo.id}
                 photoId={photo.id}
-                // 생성 중·실패는 만드는 동안에만 있는 상태라 슬라이스 5에서 다룬다.
-                // 목록에서는 기준 이미지가 있느냐 없느냐만 안다.
-                state={photo.baseImageUrl ? "done" : "none"}
                 imageUrl={photo.imageUrl}
                 baseImageUrl={photo.baseImageUrl}
                 meta={photo.meta}
