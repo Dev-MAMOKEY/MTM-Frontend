@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, redirect } from "react-router";
+import { useRef, useState } from "react";
+import { Link, redirect, useFetcher, useNavigate } from "react-router";
 
 import { SpecTag } from "../components/SpecTag";
 import { EmptyState } from "../components/EmptyState";
@@ -11,19 +11,41 @@ import { ProductTile } from "../components/ProductTile";
 import { ProgressBar } from "../components/ProgressBar";
 import { products, totalProductCount } from "../mocks/products";
 import { getMe, hasBodyInfo } from "../api/members.server";
+import { getPhotos } from "../api/photos.server";
 import { requireAccessToken } from "../api/session.server";
 import type { Route } from "./+types/home";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const token = await requireAccessToken(request);
+  const [me, allPhotos] = await Promise.all([getMe(token), getPhotos(token)]);
 
   // 신체 정보 없이는 착용 이미지를 만들 수 없다. 첫 로그인이면 여기서 설정으로 보낸다.
   // 로그인 직후만이 아니라 진입할 때마다 보므로 다른 경로로 들어와도 빠져나갈 수 없다.
-  if (!hasBodyInfo(await getMe(token))) {
+  if (!hasBodyInfo(me)) {
     throw redirect("/profile?setup=1");
   }
 
-  return null;
+  // 최신순으로 온다 — 띠의 왼쪽이 가장 최근이다.
+  const photos = allPhotos.flatMap((photo) =>
+    photo.id == null || !photo.imageUrl
+      ? []
+      : [
+          {
+            id: photo.id,
+            imageUrl: photo.imageUrl,
+            baseImageId: photo.baseImage?.id,
+            baseImageUrl: photo.baseImage?.imageUrl,
+          },
+        ],
+  );
+
+  // 고른 사진을 주소에 둔다 — 새로고침해도 남고 링크로 공유된다.
+  // 고른 적이 없으면 가장 최근 사진이다(시안: "마지막에 쓰던 사진이 선택된 상태").
+  const asked = Number(new URL(request.url).searchParams.get("photo"));
+  const selected =
+    photos.find((photo) => photo.id === asked) ?? photos[0] ?? null;
+
+  return { photos, selected };
 }
 
 export function meta({}: Route.MetaArgs) {
@@ -42,11 +64,24 @@ type LookState =
   | "generating" // 6-65 착용 이미지 생성 중
   | "failed"; // 7-2  생성 실패
 
-export default function Home() {
-  // 생성 요청은 슬라이스 5·6에서 붙인다. 지금은 상태만 그린다.
-  const [state] = useState<LookState>("ready");
+export default function Home({ loaderData }: Route.ComponentProps) {
+  const { photos, selected } = loaderData;
+  const navigate = useNavigate();
+  const upload = useFetcher();
+  const baseImage = useFetcher();
+  const fileInput = useRef<HTMLInputElement>(null);
 
-  const hasPhoto = state !== "no-photo";
+  // Z2·Z3(착용 이미지)는 아직 목이다 — 슬라이스 6에서 붙인다.
+  // Z1(내 사진)만 실제 데이터로 돈다.
+  const [mockState] = useState<LookState>("ready");
+
+  const hasPhoto = photos.length > 0;
+  const generatingBase = baseImage.state !== "idle";
+  const state: LookState = !hasPhoto
+    ? "no-photo"
+    : generatingBase
+      ? "generating-base"
+      : mockState;
 
   // 흐림은 존마다 다르다. 착용 이미지 생성 중에는 Z3를 흐리지 않는다 —
   // 다른 제품을 눌러 요청을 교체할 수 있어야 비교 흐름이 끊기지 않는다.
@@ -68,15 +103,56 @@ export default function Home() {
         </div>
         {hasPhoto ? (
           <div className="flex items-center gap-2">
-            <PhotoThumb selected label="사진 1" />
-            <PhotoThumb label="사진 2" />
-            <PhotoThumb label="사진 3" />
-            <PhotoUploadSlot />
+            {photos.map((photo, i) => (
+              <PhotoThumb
+                key={photo.id}
+                selected={photo.id === selected?.id}
+                label={`사진 ${i + 1}`}
+                imageUrl={photo.imageUrl}
+                onClick={() => navigate(`?photo=${photo.id}`)}
+              />
+            ))}
+            <PhotoUploadSlot onClick={() => fileInput.current?.click()} />
           </div>
+        ) : null}
+        {/* 업로드는 사진첩의 action 을 그대로 쓴다 — 같은 일을 두 곳에 두지 않는다 */}
+        <input
+          ref={fileInput}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+
+            if (file) {
+              const body = new FormData();
+              body.append("file", file);
+
+              upload.submit(body, {
+                action: "/photos",
+                method: "post",
+                encType: "multipart/form-data",
+              });
+            }
+          }}
+        />
+        {upload.state !== "idle" ? (
+          <ProgressBar
+            label="사진을 올리는 중"
+            width={240}
+            className="items-start gap-[6px]"
+          />
+        ) : null}
+        {/* 고른 사진에 기준 이미지가 없으면 여기서 만든다 — 없으면 착용 이미지도 못 만든다 */}
+        {selected && !selected.baseImageId && !generatingBase ? (
+          <baseImage.Form method="post" action="/photos">
+            <input type="hidden" name="intent" value="create-base-image" />
+            <input type="hidden" name="photoId" value={selected.id} />
+            <OutlineButton type="submit">기준 이미지 만들기</OutlineButton>
+          </baseImage.Form>
         ) : null}
         {state === "generating-base" ? (
           <ProgressBar
-            value={42}
             label="기준 이미지를 만드는 중"
             width={240}
             className="items-start gap-[6px]"
@@ -84,7 +160,14 @@ export default function Home() {
         ) : null}
         {!hasPhoto ? (
           <EmptyState
-            action={<OutlineButton type="button">사진 올리기</OutlineButton>}
+            action={
+              <OutlineButton
+                type="button"
+                onClick={() => fileInput.current?.click()}
+              >
+                사진 올리기
+              </OutlineButton>
+            }
           >
             아직 올린 사진이 없습니다
           </EmptyState>
