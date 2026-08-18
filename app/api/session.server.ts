@@ -164,13 +164,15 @@ export async function requireAccessToken(
   try {
     const next = await reissue({ refreshToken: state.tokens.refreshToken });
 
-    if (!next.accessToken || !next.refreshToken) {
-      throw new Error("재발급 응답에 토큰이 없다");
+    if (!next.accessToken) {
+      throw new Error("재발급 응답에 액세스 토큰이 없다");
     }
 
     state.tokens = {
       accessToken: next.accessToken,
-      refreshToken: next.refreshToken,
+      // 재발급은 액세스 토큰만 바꾼다 — "리프레시 토큰은 그대로 유지된다".
+      // 응답이 돌려주지 않을 수 있으므로 없으면 쓰던 것을 그대로 둔다.
+      refreshToken: next.refreshToken ?? state.tokens.refreshToken,
     };
     state.refreshed = true;
 
