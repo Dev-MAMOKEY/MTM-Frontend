@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { Link, redirect, useFetcher, useNavigate } from "react-router";
 
 import { SpecTag } from "../components/SpecTag";
@@ -10,12 +10,14 @@ import { OutlineButton } from "../components/OutlineButton";
 import { PhotoThumb, PhotoUploadSlot } from "../components/PhotoThumb";
 import { ProductTile } from "../components/ProductTile";
 import { ProgressBar } from "../components/ProgressBar";
+import { ApiError } from "../api/client.server";
 import { getMe, hasBodyInfo } from "../api/members.server";
-import { toListedProducts } from "../api/product";
-import { getProducts } from "../api/products.server";
+import { toListedProducts, toProductDetail } from "../api/product";
+import { getProduct, getProducts } from "../api/products.server";
 import { ACCEPT_ATTRIBUTE } from "../api/photo";
 import { getPhotos } from "../api/photos.server";
 import { requireAccessToken } from "../api/session.server";
+import { createWornImage, getWornImages } from "../api/worn-images.server";
 import type { Route } from "./+types/home";
 
 /** Z3 는 훑어보는 자리라 한 화면 분량만 받는다. 전체는 「전체 →」로 목록 화면에 간다. */
@@ -56,11 +58,53 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   const selected =
     photos.find((photo) => photo.id === asked) ?? photos[0] ?? null;
 
+  // 고른 제품도 주소에 둔다. 기준 이미지가 있어야 착용 이미지가 성립한다.
+  const askedProduct = Number(
+    new URL(request.url).searchParams.get("product"),
+  );
+  const worn =
+    selected?.baseImageId != null && Number.isInteger(askedProduct)
+      ? await findWornImage(token, selected.baseImageId, askedProduct)
+      : null;
+
   return {
     photos,
     selected,
     products: toListedProducts(productPage.content ?? []),
     totalProductCount: productPage.totalElements ?? 0,
+    worn,
+  };
+}
+
+/**
+ * 이미 만들어 둔 착용 이미지를 찾는다.
+ *
+ * 생성 응답을 화면에 들고 있지 않고 목록에서 다시 찾는 이유는 새로고침 때문이다 —
+ * 만든 직후에만 보이면 이 화면의 값어치가 절반이 된다.
+ *
+ * 제품 이름과 치수는 목록 응답에 없어 상세를 함께 부른다.
+ */
+async function findWornImage(
+  token: string,
+  baseImageId: number,
+  productId: number,
+) {
+  const found = (await getWornImages(token, baseImageId)).find(
+    (wornImage) => wornImage.productId === productId,
+  );
+
+  if (!found?.imageUrl) {
+    return null;
+  }
+
+  const detail = toProductDetail(await getProduct(token, productId));
+
+  return {
+    imageUrl: found.imageUrl,
+    productId,
+    name: detail?.name ?? "",
+    // 시안의 `14.2 × 11.8 IN`. 목록에는 치수가 없어 상세에서 가져온다.
+    size: detail?.sizeLabel,
   };
 }
 
@@ -71,39 +115,111 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-/** Figma 시안이 그린 착용 화면의 여섯 가지 상태. */
+/**
+ * 제품을 고르면 착용 이미지를 만든다.
+ *
+ * 만들고 나서 주소로 되돌려 보낸다. 응답을 화면이 들고 있으면 새로고침에 사라지는데,
+ * 주소에 남기면 loader 가 저장된 것을 다시 찾아온다.
+ *
+ * 이미 만든 조합이면 백엔드가 모델을 부르지 않고 저장된 것을 즉시 준다.
+ * 제품을 왔다 갔다 눌러보는 비교 흐름이 값싼 이유가 이것이다.
+ */
+export async function action({ request, context }: Route.ActionArgs) {
+  const token = await requireAccessToken(request, context);
+  const form = await request.formData();
+  const baseImageId = Number(form.get("baseImageId"));
+  const productId = Number(form.get("productId"));
+  const photoId = Number(form.get("photoId"));
+
+  if (!Number.isInteger(baseImageId) || !Number.isInteger(productId)) {
+    return { error: "제품을 고를 수 없습니다." };
+  }
+
+  try {
+    await createWornImage(token, baseImageId, { productId });
+  } catch (error) {
+    if (error instanceof ApiError) {
+      // 문구는 시안대로 둔다. 백엔드 메시지를 그대로 띄우면 내부 사정이 새어 나간다.
+      return { error: "착용 이미지를 만들지 못했습니다." };
+    }
+
+    throw error;
+  }
+
+  return redirect(`/?photo=${photoId}&product=${productId}`);
+}
+
+/**
+ * Figma 시안이 그린 착용 화면의 상태들.
+ *
+ * `no-base` 만 시안에 없다 — 사진은 있는데 기준 이미지를 아직 안 만든 경우다.
+ * 시안은 올리면 곧바로 기준 이미지가 만들어지는 흐름을 전제했는데, 실제로는
+ * 만들기를 눌러야 시작되므로 그 사이의 자리가 필요하다.
+ */
 type LookState =
   | "ready" // 3-2  정상
   | "no-photo" // 5-2  사진 없음
   | "generating-base" // 5-69 기준 이미지 생성 중
+  | "no-base" // 시안 밖 — 기준 이미지를 아직 만들지 않음
   | "no-product" // 6-2  제품 미선택
   | "generating" // 6-65 착용 이미지 생성 중
   | "failed"; // 7-2  생성 실패
 
 export default function Home({ loaderData }: Route.ComponentProps) {
-  const { photos, selected, products, totalProductCount } = loaderData;
+  const { photos, selected, products, totalProductCount, worn } = loaderData;
   const navigate = useNavigate();
   const upload = useFetcher<{ error: string | null }>();
   const baseImage = useFetcher();
+  const wornImage = useFetcher<{ error: string | null }>();
   const fileInput = useRef<HTMLInputElement>(null);
+  // 실패한 뒤 「다시 시도」가 어느 제품이었는지 알아야 한다. 실패하면 주소가 바뀌지
+  // 않으므로 주소에서는 찾을 수 없다.
+  const lastProductId = useRef<number | null>(null);
 
-  // Z2·Z3(착용 이미지)는 아직 목이다 — 슬라이스 6에서 붙인다.
-  // Z1(내 사진)만 실제 데이터로 돈다.
-  const [mockState] = useState<LookState>("ready");
+  const requestWornImage = (productId: number) => {
+    if (selected?.baseImageId == null) {
+      return;
+    }
+
+    lastProductId.current = productId;
+    wornImage.submit(
+      {
+        baseImageId: selected.baseImageId,
+        productId,
+        photoId: selected.id,
+      },
+      { method: "post" },
+    );
+  };
 
   const hasPhoto = photos.length > 0;
   const generatingBase = baseImage.state !== "idle";
+  const generatingWorn = wornImage.state !== "idle";
+
+  // 어느 상태인지는 데이터가 정한다 — 화면이 따로 들고 있으면 실제와 어긋난다.
   const state: LookState = !hasPhoto
     ? "no-photo"
     : generatingBase
       ? "generating-base"
-      : mockState;
+      : selected?.baseImageId == null
+        ? "no-base"
+        : generatingWorn
+          ? "generating"
+          : wornImage.data?.error
+            ? "failed"
+            : worn
+              ? "ready"
+              : "no-product";
 
   // 흐림은 존마다 다르다. 착용 이미지 생성 중에는 Z3를 흐리지 않는다 —
   // 다른 제품을 눌러 요청을 교체할 수 있어야 비교 흐름이 끊기지 않는다.
   // 반대로 기준 이미지가 없으면 착용 이미지를 만들 수 없으므로 Z3를 흐린다.
   const dimStage = state === "no-photo";
-  const dimProducts = state === "no-photo" || state === "generating-base";
+  // 기준 이미지가 없으면 제품을 눌러도 착용 이미지를 만들 수 없다.
+  const dimProducts =
+    state === "no-photo" ||
+    state === "generating-base" ||
+    state === "no-base";
 
   return (
     <div className="flex h-screen flex-col bg-surface-base">
@@ -200,7 +316,15 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             (dimStage ? "opacity-35" : "")
           }
         >
-          <LookStage state={state} />
+          <LookStage
+            state={state}
+            worn={worn}
+            onRetry={() =>
+              lastProductId.current != null &&
+              requestWornImage(lastProductId.current)
+            }
+            onClear={() => navigate(`?photo=${selected?.id ?? ""}`)}
+          />
         </section>
 
         {/* Z3 · 제품 */}
@@ -218,6 +342,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
               전체 →
             </Link>
           </div>
+          {/* 타일을 누르면 상세로 가지 않고 그 자리에서 착용 이미지를 만든다.
+              비교 흐름(F3)이 이 서비스의 값어치인데 매번 상세를 거치면 끊긴다. */}
           <div className="grid grid-cols-2 gap-3">
             {products.map((product) => (
               <ProductTile
@@ -225,6 +351,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                 name={product.name}
                 price={product.price}
                 imageUrl={product.imageUrl}
+                onClick={() => requestWornImage(product.id)}
               />
             ))}
           </div>
@@ -234,12 +361,37 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   );
 }
 
-function LookStage({ state }: { state: LookState }) {
+type WornView = {
+  imageUrl: string;
+  productId: number;
+  name: string;
+  size?: string;
+};
+
+function LookStage({
+  state,
+  worn,
+  onRetry,
+  onClear,
+}: {
+  state: LookState;
+  worn: WornView | null;
+  onRetry: () => void;
+  onClear: () => void;
+}) {
   // 기준 이미지가 아직 없으므로 제품명·태그·액션을 감춘다
   if (state === "generating-base") {
     return (
       <EmptyState className="flex-1">
         기준 이미지가 만들어지면 여기에 표시됩니다
+      </EmptyState>
+    );
+  }
+
+  if (state === "no-base") {
+    return (
+      <EmptyState className="flex-1">
+        위에서 기준 이미지를 먼저 만들어 주세요
       </EmptyState>
     );
   }
@@ -257,7 +409,11 @@ function LookStage({ state }: { state: LookState }) {
     return (
       <EmptyState
         className="flex-1"
-        action={<OutlineButton type="button">다시 시도</OutlineButton>}
+        action={
+          <OutlineButton type="button" onClick={onRetry}>
+            다시 시도
+          </OutlineButton>
+        }
       >
         <p>착용 이미지를 만들지 못했습니다</p>
         <p>잠시 후 다시 시도해 주세요</p>
@@ -265,10 +421,11 @@ function LookStage({ state }: { state: LookState }) {
     );
   }
 
-  if (state === "generating") {
+  if (state === "generating" || !worn) {
     return (
       <div className="flex w-full flex-1 flex-col items-center justify-center gap-[10px] border border-solid border-border-default bg-surface-track">
-        <ProgressBar value={55} label="착용 이미지를 만드는 중" />
+        {/* 동기 요청이라 진행률을 알 수 없다 — 불확정 막대로 둔다 */}
+        <ProgressBar label="착용 이미지를 만드는 중" />
       </div>
     );
   }
@@ -276,14 +433,23 @@ function LookStage({ state }: { state: LookState }) {
   // ready — 조작 요소는 전부 무대 바깥 아래에 둔다
   return (
     <>
-      <div className="flex w-full min-h-px flex-1 flex-col items-center justify-center border border-solid border-border-default bg-surface-track" />
-      <p className="text-body text-text-primary">Aren Zip Hobo in Visetos</p>
-      <div className="flex gap-[6px]">
-        <SpecTag>14.2 × 11.8 IN</SpecTag>
-      </div>
+      <img
+        src={worn.imageUrl}
+        alt=""
+        className="min-h-px w-full flex-1 border border-solid border-border-default bg-surface-base object-contain"
+      />
+      <p className="text-body text-text-primary">{worn.name}</p>
+      {worn.size ? (
+        <div className="flex gap-[6px]">
+          <SpecTag>{worn.size}</SpecTag>
+        </div>
+      ) : null}
       <div className="flex items-center gap-[10px]">
-        <OutlineButton type="button">다시 만들기</OutlineButton>
-        <IconButton type="button" aria-label="선택 해제">
+        {/* 다시 만들기는 슬라이스 8에서 붙인다 — 지금 누르면 같은 것이 다시 온다 */}
+        <OutlineButton type="button" disabled>
+          다시 만들기
+        </OutlineButton>
+        <IconButton type="button" aria-label="선택 해제" onClick={onClear}>
           ×
         </IconButton>
       </div>
