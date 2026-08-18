@@ -40,6 +40,7 @@ export async function loader({ request }: Route.LoaderArgs) {
           {
             id: photo.id,
             imageUrl: photo.imageUrl,
+            baseImageUrl: photo.baseImage?.imageUrl,
             meta: formatUploadedAt(photo.createdAt),
           },
         ],
@@ -125,8 +126,11 @@ export default function Photos({ loaderData }: Route.ComponentProps) {
             {photos.map((photo) => (
               <PhotoCard
                 key={photo.id}
-                state="none"
+                // 생성 중·실패는 만드는 동안에만 있는 상태라 슬라이스 5에서 다룬다.
+                // 목록에서는 기준 이미지가 있느냐 없느냐만 안다.
+                state={photo.baseImageUrl ? "done" : "none"}
                 imageUrl={photo.imageUrl}
+                baseImageUrl={photo.baseImageUrl}
                 meta={photo.meta}
               />
             ))}

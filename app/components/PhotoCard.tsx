@@ -12,12 +12,14 @@ export function PhotoCard({
   state,
   meta,
   imageUrl,
+  baseImageUrl,
   lookCount = 0,
 }: {
-  /** `none` — 기준 이미지를 아직 만들지 않았거나 상태를 알 수 없다(슬라이스 5). */
+  /** `none` — 기준 이미지를 아직 만들지 않았다. */
   state: PhotoCardState;
   meta: string;
   imageUrl?: string;
+  baseImageUrl?: string;
   lookCount?: number;
 }) {
   return (
@@ -39,6 +41,13 @@ export function PhotoCard({
           <div className="flex h-[200px] min-w-px flex-1 flex-col items-center justify-center border border-dashed border-border-strong bg-surface-muted text-[11px] text-text-tertiary">
             기준 이미지 없음
           </div>
+        ) : state === "done" && baseImageUrl ? (
+          <img
+            src={baseImageUrl}
+            alt=""
+            loading="lazy"
+            className="h-[200px] min-w-px flex-1 border border-solid border-border-default bg-surface-base object-cover"
+          />
         ) : state === "done" ? (
           <div className="flex h-[200px] min-w-px flex-1 flex-col items-center justify-center border border-solid border-border-default bg-surface-track text-[11px] text-text-tertiary">
             기준 이미지
