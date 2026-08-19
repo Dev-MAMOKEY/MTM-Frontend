@@ -155,8 +155,12 @@ function Detail({ detail }: { detail: ProductDetailView }) {
 
         <div className="h-[8px]" />
         <div>
-          {/* 착용 이미지 생성은 슬라이스 6에서 붙인다 */}
-          <OutlineButton type="button">이 제품 입어보기</OutlineButton>
+          {/* 여기서 만들지 않고 착용 화면으로 보낸다. 생성이 동기라 최대 2분 걸리는데
+              그동안 보여줄 로딩 자리가 이 화면에는 없고, 착용 화면에는 로딩·실패·완료가
+              시안대로 이미 있다. 그 화면이 조합을 보고 없으면 만든다. */}
+          <Link to={`/?product=${detail.id}`}>
+            <OutlineButton type="button">이 제품 입어보기</OutlineButton>
+          </Link>
         </div>
 
         {detail.description ? (

@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Link, redirect, useFetcher, useNavigate } from "react-router";
 
 import { SpecTag } from "../components/SpecTag";
@@ -82,6 +82,8 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     products: toListedProducts(productPage.content ?? []),
     totalProductCount: productPage.totalElements ?? 0,
     worn,
+    // 주소가 제품을 가리키는데 아직 만들어진 것이 없으면 화면이 그것을 만든다.
+    askedProductId: Number.isInteger(askedProduct) ? askedProduct : null,
   };
 }
 
@@ -189,7 +191,8 @@ type LookState =
   | "failed"; // 7-2  생성 실패
 
 export default function Home({ loaderData }: Route.ComponentProps) {
-  const { photos, selected, products, totalProductCount, worn } = loaderData;
+  const { photos, selected, products, totalProductCount, worn, askedProductId } =
+    loaderData;
   const navigate = useNavigate();
   const upload = useFetcher<{ error: string | null }>();
   const baseImage = useFetcher();
@@ -220,6 +223,29 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const generatingBase = baseImage.state !== "idle";
   const generatingWorn = wornImage.state !== "idle";
 
+  /**
+   * 주소가 제품을 가리키는데 그 착용 이미지가 아직 없으면 여기서 만든다.
+   *
+   * 제품 상세의 「이 제품 입어보기」가 이 화면으로 보내기만 하고 생성은 맡기지
+   * 않는 이유다 — 로딩·실패·완료 상태가 시안대로 여기 있다. 링크를 공유받거나
+   * 새로고침한 경우도 같은 길로 처리된다.
+   *
+   * 조합마다 한 번만 시도한다. 실패해도 다시 걸면 502 가 날 때 무한히 재요청한다.
+   * 다시 시도는 사용자가 버튼으로 정한다.
+   */
+  const attempted = useRef<string | null>(null);
+  const pendingKey =
+    askedProductId != null && selected?.baseImageId != null && !worn
+      ? `${selected.baseImageId}:${askedProductId}`
+      : null;
+
+  useEffect(() => {
+    if (pendingKey && attempted.current !== pendingKey && wornImage.state === "idle") {
+      attempted.current = pendingKey;
+      requestWornImage(askedProductId!);
+    }
+  }, [pendingKey, wornImage.state]);
+
   // 어느 상태인지는 데이터가 정한다 — 화면이 따로 들고 있으면 실제와 어긋난다.
   const state: LookState = !hasPhoto
     ? "no-photo"
@@ -227,7 +253,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       ? "generating-base"
       : selected?.baseImageId == null
         ? "no-base"
-        : generatingWorn
+        : generatingWorn || pendingKey
           ? "generating"
           : wornImage.data?.error
             ? "failed"
