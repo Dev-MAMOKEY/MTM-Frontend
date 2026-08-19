@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, redirect, useFetcher, useNavigate } from "react-router";
 
 import { SpecTag } from "../components/SpecTag";
@@ -23,6 +23,20 @@ import {
   regenerateWornImage,
 } from "../api/worn-images.server";
 import type { Route } from "./+types/home";
+
+/**
+ * 주소의 id 파라미터를 읽는다.
+ *
+ * `Number(null)` 은 0 이고 `Number.isInteger(0)` 은 참이라, 파라미터가 **없을 때**
+ * 0 이라는 멀쩡해 보이는 id 가 만들어진다. 그대로 두면 없는 제품을 만들라고
+ * 요청하게 된다. 실제 id 는 1 부터이므로 양수만 받는다.
+ */
+function idParam(params: URLSearchParams, name: string) {
+  const raw = params.get(name);
+  const value = raw ? Number(raw) : NaN;
+
+  return Number.isInteger(value) && value > 0 ? value : null;
+}
 
 /** Z3 는 훑어보는 자리라 한 화면 분량만 받는다. 전체는 「전체 →」로 목록 화면에 간다. */
 const Z3_PRODUCT_COUNT = 20;
@@ -57,17 +71,21 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   );
 
   // 고른 사진을 주소에 둔다 — 새로고침해도 남고 링크로 공유된다.
-  // 고른 적이 없으면 가장 최근 사진이다(시안: "마지막에 쓰던 사진이 선택된 상태").
-  const asked = Number(new URL(request.url).searchParams.get("photo"));
+  // 고른 적이 없으면 **기준 이미지가 있는** 가장 최근 사진이다. 그냥 최신 사진을
+  // 집으면 그게 기준 이미지가 없을 때 착용 이미지를 만들 수 없는 자리에 떨어진다.
+  // (시안: "마지막에 쓰던 사진이 선택된 상태")
+  const params = new URL(request.url).searchParams;
+  const asked = idParam(params, "photo");
   const selected =
-    photos.find((photo) => photo.id === asked) ?? photos[0] ?? null;
+    photos.find((photo) => photo.id === asked) ??
+    photos.find((photo) => photo.baseImageId != null) ??
+    photos[0] ??
+    null;
 
   // 고른 제품도 주소에 둔다. 기준 이미지가 있어야 착용 이미지가 성립한다.
-  const askedProduct = Number(
-    new URL(request.url).searchParams.get("product"),
-  );
+  const askedProduct = idParam(params, "product");
   const worn =
-    selected?.baseImageId != null && Number.isInteger(askedProduct)
+    selected?.baseImageId != null && askedProduct != null
       ? await findWornImage(auth, selected.baseImageId, askedProduct)
       : null;
 
@@ -77,6 +95,8 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     products: toListedProducts(productPage.content ?? []),
     totalProductCount: productPage.totalElements ?? 0,
     worn,
+    // 주소가 제품을 가리키는데 아직 만들어진 것이 없으면 화면이 그것을 만든다.
+    askedProductId: askedProduct,
   };
 }
 
@@ -137,13 +157,21 @@ export async function action({ request, context }: Route.ActionArgs) {
   const productId = Number(form.get("productId"));
   const photoId = Number(form.get("photoId"));
 
-  if (!Number.isInteger(baseImageId) || !Number.isInteger(productId)) {
+  // 0 이나 음수는 실제 id 가 아니다. 여기서 걸러야 없는 제품을 만들라고 보내지 않는다.
+  if (baseImageId <= 0 || productId <= 0) {
     return { error: "제품을 고를 수 없습니다." };
   }
 
   // 재생성은 저장된 것을 교체한다. 생성은 멱등이라 같은 조합이면 그대로 돌려주므로,
   // 「다시 만들기」가 생성을 부르면 아무것도 바뀌지 않는다.
   const regenerate = form.get("intent") === "regenerate";
+
+  // 개발 중에만. 어떤 조합으로 요청했는지 알아야 백엔드가 준 실패 사유를 해석할 수 있다.
+  if (process.env.NODE_ENV !== "production") {
+    console.log(
+      `[worn] ${regenerate ? "regenerate" : "create"} baseImage=${baseImageId} product=${productId} photo=${photoId}`,
+    );
+  }
 
   try {
     await (regenerate ? regenerateWornImage : createWornImage)(
@@ -184,7 +212,8 @@ type LookState =
   | "failed"; // 7-2  생성 실패
 
 export default function Home({ loaderData }: Route.ComponentProps) {
-  const { photos, selected, products, totalProductCount, worn } = loaderData;
+  const { photos, selected, products, totalProductCount, worn, askedProductId } =
+    loaderData;
   const navigate = useNavigate();
   const upload = useFetcher<{ error: string | null }>();
   const baseImage = useFetcher();
@@ -200,6 +229,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     }
 
     lastProductId.current = productId;
+    setCleared(false);
     wornImage.submit(
       {
         intent,
@@ -215,7 +245,42 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const generatingBase = baseImage.state !== "idle";
   const generatingWorn = wornImage.state !== "idle";
 
+  /**
+   * 주소가 제품을 가리키는데 그 착용 이미지가 아직 없으면 여기서 만든다.
+   *
+   * 제품 상세의 「이 제품 입어보기」가 이 화면으로 보내기만 하고 생성은 맡기지
+   * 않는 이유다 — 로딩·실패·완료 상태가 시안대로 여기 있다. 링크를 공유받거나
+   * 새로고침한 경우도 같은 길로 처리된다.
+   *
+   * 조합마다 한 번만 시도한다. 실패해도 다시 걸면 502 가 날 때 무한히 재요청한다.
+   * 다시 시도는 사용자가 버튼으로 정한다.
+   */
+  const attempted = useRef<string | null>(null);
+  /**
+   * 선택을 지웠는지.
+   *
+   * fetcher 의 `data` 는 화면을 옮겨도 남는다. 실패한 뒤 선택을 지우면 주소에서는
+   * 제품이 사라졌는데 실패 결과가 그대로 있어, 「만들지 못했습니다」가 계속 뜬다.
+   * 새 요청을 보내면 다시 내린다.
+   */
+  const [cleared, setCleared] = useState(false);
+  const pendingKey =
+    askedProductId != null && selected?.baseImageId != null && !worn
+      ? `${selected.baseImageId}:${askedProductId}`
+      : null;
+
+  useEffect(() => {
+    if (pendingKey && attempted.current !== pendingKey && wornImage.state === "idle") {
+      attempted.current = pendingKey;
+      requestWornImage(askedProductId!);
+    }
+  }, [pendingKey, wornImage.state]);
+
   // 어느 상태인지는 데이터가 정한다 — 화면이 따로 들고 있으면 실제와 어긋난다.
+  //
+  // pendingKey 를 여기 넣지 않는다. 그건 「만들 것이 남았다」가 아니라 「결과가 없다」는
+  // 뜻이라 시도가 끝난 뒤에도 참이다. 상태에 섞으면 실패했는데도 「만드는 중」이
+  // 영원히 도는 화면이 된다. 요청이 실제로 도는 동안은 generatingWorn 이 말해준다.
   const state: LookState = !hasPhoto
     ? "no-photo"
     : generatingBase
@@ -224,7 +289,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         ? "no-base"
         : generatingWorn
           ? "generating"
-          : wornImage.data?.error
+          : wornImage.data?.error && !cleared
             ? "failed"
             : worn
               ? "ready"
@@ -345,7 +410,12 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             onRegenerate={() =>
               worn && requestWornImage(worn.productId, "regenerate")
             }
-            onClear={() => navigate(`?photo=${selected?.id ?? ""}`)}
+            // 제품만 지우고 사진은 남긴다. 주소를 통째로 다시 만들어 product 가
+            // 남는 일이 없게 한다.
+            onClear={() => {
+              setCleared(true);
+              navigate(selected ? `/?photo=${selected.id}` : "/");
+            }}
           />
         </section>
 
