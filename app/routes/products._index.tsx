@@ -108,6 +108,7 @@ export default function Products({ loaderData }: Route.ComponentProps) {
                 size="large"
                 name={product.name}
                 price={product.price}
+                wearType={product.wearType}
                 imageUrl={product.imageUrl}
                 onClick={() => navigate(`/products/${product.id}`)}
               />

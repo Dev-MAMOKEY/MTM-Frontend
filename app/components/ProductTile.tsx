@@ -1,3 +1,5 @@
+import { SpecTag } from "./SpecTag";
+
 /**
  * 제품 타일. 놓이는 자리에 따라 크기가 다르다.
  * - compact — 착용 화면 Z3. 컷 124×114 (Figma 3:38)
@@ -13,6 +15,7 @@ const SIZES = {
 export function ProductTile({
   name,
   price,
+  wearType,
   imageUrl,
   size = "compact",
   onClick,
@@ -20,6 +23,8 @@ export function ProductTile({
   name: string;
   /** 통화가 없으면 값이 없다. 자리를 비우지 않고 표시만 비운다. */
   price?: string;
+  /** 착용 방식. 필터가 없는 목록에서 제품을 구분하는 단서다(UX 감사 U6). */
+  wearType?: string;
   imageUrl?: string;
   size?: keyof typeof SIZES;
   onClick?: () => void;
@@ -55,6 +60,12 @@ export function ProductTile({
       <span style={{ width }} className="truncate text-caption text-text-primary">
         {name}
       </span>
+      {/* 시안 순서는 제품명 → 착용 방식 → 가격이다 */}
+      {wearType ? (
+        <span>
+          <SpecTag>{wearType}</SpecTag>
+        </span>
+      ) : null}
       <span className="text-caption text-text-secondary">{price ?? ""}</span>
     </button>
   );
