@@ -33,6 +33,11 @@
   --text-button--letter-spacing: 1px;
   --text-caption: 12px;
 
+  /* 시안 기준 PC 폭. 화면이 더 넓어도 본문은 여기서 멈추고 가운데 정렬된다.
+     넓어지는 만큼 늘어나면 착용 화면은 오른쪽 제품 열이 고정폭이라 왼쪽만 벌어지고,
+     제품 목록은 타일 사이가 벌어진다. (Tailwind 의 --container-* 는 max-w-* 가 된다) */
+  --container-page: 1440px;
+
   /* 생성 요청은 동기라 진행률을 알 수 없다. 막대가 트랙을 왕복해 "돌고 있다"만 말한다.
      시안에 없는 움직임이지만, 70%에 멈춰 있는 막대는 알지 못하는 것을 아는 척한다. */
   --animate-indeterminate: indeterminate 1.4s ease-in-out infinite;

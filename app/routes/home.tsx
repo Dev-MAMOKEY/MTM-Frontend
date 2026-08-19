@@ -243,7 +243,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       <Header />
 
       {/* Z1 · 내 사진 */}
-      <section className="flex w-full flex-col gap-[10px] border-b border-solid border-border-default p-[14px]">
+      <section className="mx-auto flex w-full max-w-page flex-col gap-[10px] border-b border-solid border-border-default p-[14px]">
         <div className="flex w-full items-start justify-between text-text-tertiary">
           <h2 className="text-[10px] font-medium tracking-[1px]">내 사진</h2>
           <Link to="/photos" className="text-[11px]">
@@ -325,7 +325,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         ) : null}
       </section>
 
-      <div className="flex w-full flex-1 items-start overflow-hidden">
+      <div className="mx-auto flex w-full max-w-page flex-1 items-start overflow-hidden">
         {/* Z2 · LookStage */}
         <section
           className={
