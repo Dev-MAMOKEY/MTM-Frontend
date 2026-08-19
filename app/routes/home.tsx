@@ -107,7 +107,9 @@ async function findWornImage(
     imageUrl: found.imageUrl,
     productId,
     name: detail?.name ?? "",
-    // 시안의 `14.2 × 11.8 IN`. 목록에는 치수가 없어 상세에서 가져온다.
+    // 시안은 착용 방식과 크기를 태그 두 개로 나란히 둔다. 둘 다 목록에는 없고
+    // 상세에만 있어 여기서 가져온다.
+    wearType: detail?.wearType,
     size: detail?.sizeLabel,
   };
 }
@@ -385,6 +387,7 @@ type WornView = {
   imageUrl: string;
   productId: number;
   name: string;
+  wearType?: string;
   size?: string;
 };
 
@@ -461,9 +464,10 @@ function LookStage({
         className="min-h-px w-full flex-1 border border-solid border-border-default bg-surface-base object-contain"
       />
       <p className="text-body text-text-primary">{worn.name}</p>
-      {worn.size ? (
+      {worn.wearType || worn.size ? (
         <div className="flex gap-[6px]">
-          <SpecTag>{worn.size}</SpecTag>
+          {worn.wearType ? <SpecTag>{worn.wearType}</SpecTag> : null}
+          {worn.size ? <SpecTag>{worn.size}</SpecTag> : null}
         </div>
       ) : null}
       <div className="flex items-center gap-[10px]">
