@@ -24,6 +24,20 @@ import {
 } from "../api/worn-images.server";
 import type { Route } from "./+types/home";
 
+/**
+ * 주소의 id 파라미터를 읽는다.
+ *
+ * `Number(null)` 은 0 이고 `Number.isInteger(0)` 은 참이라, 파라미터가 **없을 때**
+ * 0 이라는 멀쩡해 보이는 id 가 만들어진다. 그대로 두면 없는 제품을 만들라고
+ * 요청하게 된다. 실제 id 는 1 부터이므로 양수만 받는다.
+ */
+function idParam(params: URLSearchParams, name: string) {
+  const raw = params.get(name);
+  const value = raw ? Number(raw) : NaN;
+
+  return Number.isInteger(value) && value > 0 ? value : null;
+}
+
 /** Z3 는 훑어보는 자리라 한 화면 분량만 받는다. 전체는 「전체 →」로 목록 화면에 간다. */
 const Z3_PRODUCT_COUNT = 20;
 
@@ -60,7 +74,8 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   // 고른 적이 없으면 **기준 이미지가 있는** 가장 최근 사진이다. 그냥 최신 사진을
   // 집으면 그게 기준 이미지가 없을 때 착용 이미지를 만들 수 없는 자리에 떨어진다.
   // (시안: "마지막에 쓰던 사진이 선택된 상태")
-  const asked = Number(new URL(request.url).searchParams.get("photo"));
+  const params = new URL(request.url).searchParams;
+  const asked = idParam(params, "photo");
   const selected =
     photos.find((photo) => photo.id === asked) ??
     photos.find((photo) => photo.baseImageId != null) ??
@@ -68,11 +83,9 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     null;
 
   // 고른 제품도 주소에 둔다. 기준 이미지가 있어야 착용 이미지가 성립한다.
-  const askedProduct = Number(
-    new URL(request.url).searchParams.get("product"),
-  );
+  const askedProduct = idParam(params, "product");
   const worn =
-    selected?.baseImageId != null && Number.isInteger(askedProduct)
+    selected?.baseImageId != null && askedProduct != null
       ? await findWornImage(auth, selected.baseImageId, askedProduct)
       : null;
 
@@ -83,7 +96,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     totalProductCount: productPage.totalElements ?? 0,
     worn,
     // 주소가 제품을 가리키는데 아직 만들어진 것이 없으면 화면이 그것을 만든다.
-    askedProductId: Number.isInteger(askedProduct) ? askedProduct : null,
+    askedProductId: askedProduct,
   };
 }
 
@@ -144,13 +157,21 @@ export async function action({ request, context }: Route.ActionArgs) {
   const productId = Number(form.get("productId"));
   const photoId = Number(form.get("photoId"));
 
-  if (!Number.isInteger(baseImageId) || !Number.isInteger(productId)) {
+  // 0 이나 음수는 실제 id 가 아니다. 여기서 걸러야 없는 제품을 만들라고 보내지 않는다.
+  if (baseImageId <= 0 || productId <= 0) {
     return { error: "제품을 고를 수 없습니다." };
   }
 
   // 재생성은 저장된 것을 교체한다. 생성은 멱등이라 같은 조합이면 그대로 돌려주므로,
   // 「다시 만들기」가 생성을 부르면 아무것도 바뀌지 않는다.
   const regenerate = form.get("intent") === "regenerate";
+
+  // 개발 중에만. 어떤 조합으로 요청했는지 알아야 백엔드가 준 실패 사유를 해석할 수 있다.
+  if (process.env.NODE_ENV !== "production") {
+    console.log(
+      `[worn] ${regenerate ? "regenerate" : "create"} baseImage=${baseImageId} product=${productId} photo=${photoId}`,
+    );
+  }
 
   try {
     await (regenerate ? regenerateWornImage : createWornImage)(
