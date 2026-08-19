@@ -404,7 +404,17 @@ function LookStage({
   onRegenerate: () => void;
   onClear: () => void;
 }) {
-  // 기준 이미지가 아직 없으므로 제품명·태그·액션을 감춘다
+  // 상태마다 명시적으로 그린다. 포괄 조건으로 떨어뜨리면 분기를 빠뜨렸을 때
+  // 만들지도 않는데 「만드는 중」 로딩바가 도는 화면이 된다.
+
+  // 사진이 없으면 안내는 Z1 의 EmptyState 가 맡는다. 무대는 흐려진 빈 자리로 둔다. (8:458)
+  if (state === "no-photo") {
+    return (
+      <div className="w-full min-h-px flex-1 border border-solid border-border-default bg-surface-track" />
+    );
+  }
+
+  // 기준 이미지가 아직 없으므로 제품명·태그·액션을 감춘다 (8:519)
   if (state === "generating-base") {
     return (
       <EmptyState className="flex-1">
@@ -421,6 +431,7 @@ function LookStage({
     );
   }
 
+  // 8:586
   if (state === "no-product") {
     return (
       <EmptyState className="flex-1">
@@ -430,6 +441,7 @@ function LookStage({
     );
   }
 
+  // 8:714
   if (state === "failed") {
     return (
       <EmptyState
@@ -446,12 +458,22 @@ function LookStage({
     );
   }
 
-  if (state === "generating" || !worn) {
+  // 8:649 — 동기 요청이라 진행률을 알 수 없어 불확정 막대로 둔다
+  if (state === "generating") {
     return (
       <div className="flex w-full flex-1 flex-col items-center justify-center gap-[10px] border border-solid border-border-default bg-surface-track">
-        {/* 동기 요청이라 진행률을 알 수 없다 — 불확정 막대로 둔다 */}
         <ProgressBar label="착용 이미지를 만드는 중" />
       </div>
+    );
+  }
+
+  // ready 인데 그릴 착용 이미지가 없으면 상태 판정이 어긋난 것이다. 로딩바로 덮지 않는다.
+  if (!worn) {
+    return (
+      <EmptyState className="flex-1">
+        <p>오른쪽에서 제품을 골라보세요</p>
+        <p>(모바일: 아래에서)</p>
+      </EmptyState>
     );
   }
 
