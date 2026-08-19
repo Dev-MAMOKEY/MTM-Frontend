@@ -17,7 +17,11 @@ import { getProduct, getProducts } from "../api/products.server";
 import { ACCEPT_ATTRIBUTE } from "../api/photo";
 import { getPhotos } from "../api/photos.server";
 import { requireAccessToken } from "../api/session.server";
-import { createWornImage, getWornImages } from "../api/worn-images.server";
+import {
+  createWornImage,
+  getWornImages,
+  regenerateWornImage,
+} from "../api/worn-images.server";
 import type { Route } from "./+types/home";
 
 /** Z3 는 훑어보는 자리라 한 화면 분량만 받는다. 전체는 「전체 →」로 목록 화면에 간다. */
@@ -135,12 +139,24 @@ export async function action({ request, context }: Route.ActionArgs) {
     return { error: "제품을 고를 수 없습니다." };
   }
 
+  // 재생성은 저장된 것을 교체한다. 생성은 멱등이라 같은 조합이면 그대로 돌려주므로,
+  // 「다시 만들기」가 생성을 부르면 아무것도 바뀌지 않는다.
+  const regenerate = form.get("intent") === "regenerate";
+
   try {
-    await createWornImage(token, baseImageId, { productId });
+    await (regenerate ? regenerateWornImage : createWornImage)(
+      token,
+      baseImageId,
+      { productId },
+    );
   } catch (error) {
     if (error instanceof ApiError) {
       // 문구는 시안대로 둔다. 백엔드 메시지를 그대로 띄우면 내부 사정이 새어 나간다.
-      return { error: "착용 이미지를 만들지 못했습니다." };
+      return {
+        error: regenerate
+          ? "착용 이미지를 다시 만들지 못했습니다."
+          : "착용 이미지를 만들지 못했습니다.",
+      };
     }
 
     throw error;
@@ -176,7 +192,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   // 않으므로 주소에서는 찾을 수 없다.
   const lastProductId = useRef<number | null>(null);
 
-  const requestWornImage = (productId: number) => {
+  const requestWornImage = (productId: number, intent: "create" | "regenerate" = "create") => {
     if (selected?.baseImageId == null) {
       return;
     }
@@ -184,6 +200,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     lastProductId.current = productId;
     wornImage.submit(
       {
+        intent,
         baseImageId: selected.baseImageId,
         productId,
         photoId: selected.id,
@@ -323,6 +340,9 @@ export default function Home({ loaderData }: Route.ComponentProps) {
               lastProductId.current != null &&
               requestWornImage(lastProductId.current)
             }
+            onRegenerate={() =>
+              worn && requestWornImage(worn.productId, "regenerate")
+            }
             onClear={() => navigate(`?photo=${selected?.id ?? ""}`)}
           />
         </section>
@@ -372,11 +392,13 @@ function LookStage({
   state,
   worn,
   onRetry,
+  onRegenerate,
   onClear,
 }: {
   state: LookState;
   worn: WornView | null;
   onRetry: () => void;
+  onRegenerate: () => void;
   onClear: () => void;
 }) {
   // 기준 이미지가 아직 없으므로 제품명·태그·액션을 감춘다
@@ -445,8 +467,7 @@ function LookStage({
         </div>
       ) : null}
       <div className="flex items-center gap-[10px]">
-        {/* 다시 만들기는 슬라이스 8에서 붙인다 — 지금 누르면 같은 것이 다시 온다 */}
-        <OutlineButton type="button" disabled>
+        <OutlineButton type="button" onClick={onRegenerate}>
           다시 만들기
         </OutlineButton>
         <IconButton type="button" aria-label="선택 해제" onClick={onClear}>
