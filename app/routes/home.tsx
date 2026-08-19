@@ -247,13 +247,17 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   }, [pendingKey, wornImage.state]);
 
   // 어느 상태인지는 데이터가 정한다 — 화면이 따로 들고 있으면 실제와 어긋난다.
+  //
+  // pendingKey 를 여기 넣지 않는다. 그건 「만들 것이 남았다」가 아니라 「결과가 없다」는
+  // 뜻이라 시도가 끝난 뒤에도 참이다. 상태에 섞으면 실패했는데도 「만드는 중」이
+  // 영원히 도는 화면이 된다. 요청이 실제로 도는 동안은 generatingWorn 이 말해준다.
   const state: LookState = !hasPhoto
     ? "no-photo"
     : generatingBase
       ? "generating-base"
       : selected?.baseImageId == null
         ? "no-base"
-        : generatingWorn || pendingKey
+        : generatingWorn
           ? "generating"
           : wornImage.data?.error
             ? "failed"
@@ -376,7 +380,11 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             onRegenerate={() =>
               worn && requestWornImage(worn.productId, "regenerate")
             }
-            onClear={() => navigate(`?photo=${selected?.id ?? ""}`)}
+            // 제품만 지우고 사진은 남긴다. 주소를 통째로 다시 만들어 product 가
+            // 남는 일이 없게 한다.
+            onClear={() =>
+              navigate(selected ? `/?photo=${selected.id}` : "/")
+            }
           />
         </section>
 
