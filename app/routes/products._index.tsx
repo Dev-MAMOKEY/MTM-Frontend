@@ -73,7 +73,7 @@ export default function Products({ loaderData }: Route.ComponentProps) {
   return (
     <div className="flex min-h-screen flex-col bg-surface-base">
       <Header />
-      <main className="flex w-full flex-col gap-[22px] px-10 py-6">
+      <main className="mx-auto flex w-full max-w-page flex-col gap-[22px] px-10 py-6">
         <div className="flex w-full items-baseline justify-between">
           <PageTitle>제품</PageTitle>
           {error ? null : (

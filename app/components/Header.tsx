@@ -9,7 +9,10 @@ import { Form, Link } from "react-router";
  */
 export function Header() {
   return (
-    <header className="flex items-center justify-between bg-surface-header px-6 py-[14px] text-text-inverse">
+    // 바는 화면 끝까지 이어지고 안쪽 내용만 본문 폭에 맞춘다. 다크 바가 중간에서
+    // 끊기면 브랜드 바 역할을 못 한다.
+    <header className="w-full bg-surface-header text-text-inverse">
+      <div className="mx-auto flex w-full max-w-page items-center justify-between px-6 py-[14px]">
       <Link to="/" className="text-[15px] font-bold tracking-[1px]">
         MTM
       </Link>
@@ -22,6 +25,7 @@ export function Header() {
           </button>
         </Form>
       </nav>
+      </div>
     </header>
   );
 }

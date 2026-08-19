@@ -49,7 +49,7 @@ export default function ProductDetail({ loaderData }: Route.ComponentProps) {
   return (
     <div className="flex min-h-screen flex-col bg-surface-base">
       <Header />
-      <div className="w-full border-b border-solid border-border-default px-6 py-[10px]">
+      <div className="mx-auto w-full max-w-page border-b border-solid border-border-default px-6 py-[10px]">
         <Link to="/products" className="text-caption text-text-tertiary">
           ← 제품 목록
         </Link>
@@ -59,7 +59,7 @@ export default function ProductDetail({ loaderData }: Route.ComponentProps) {
         <Detail detail={detail} />
       ) : (
         // 상단 「← 제품 목록」이 살아 있지만, 실패 화면에서 다음 행동을 눈에 띄게 둔다
-        <main className="px-10 py-7">
+        <main className="mx-auto w-full max-w-page px-10 py-7">
           <EmptyState
             action={
               <Link to="/products">
@@ -80,7 +80,7 @@ function Detail({ detail }: { detail: ProductDetailView }) {
   const cut = detail.cuts[selectedCut];
 
   return (
-    <div className="flex w-full flex-1 items-start">
+    <div className="mx-auto flex w-full max-w-page flex-1 items-start">
       {/* 좌 — 제품 컷 */}
       <div className="flex h-full min-w-px flex-1 flex-col gap-3 border-r border-solid border-border-default px-10 py-7">
         {/* 컷 원본이 거의 정사각이다. 가로로만 넓은 칸에 object-contain 을 쓰면 짧은 쪽인

@@ -135,7 +135,7 @@ export default function Photos({ loaderData }: Route.ComponentProps) {
   return (
     <div className="flex min-h-screen flex-col bg-surface-base">
       <Header />
-      <main className="flex w-full flex-col gap-5 px-10 py-6">
+      <main className="mx-auto flex w-full max-w-page flex-col gap-5 px-10 py-6">
         <div className="flex w-full items-center justify-between">
           <PageTitle>내 사진</PageTitle>
           {/* 파일 입력은 브라우저마다 생김새가 달라 시안과 맞출 수 없다.
