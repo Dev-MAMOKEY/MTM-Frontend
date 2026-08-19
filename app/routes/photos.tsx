@@ -71,7 +71,16 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   );
 
   return {
-    photos: photos.map((photo, i) => ({ ...photo, lookCount: lookCounts[i] })),
+    photos: photos.map((photo, i) => ({
+      ...photo,
+      lookCount: lookCounts[i],
+      // 시안: `2026-08-05 올림 · 착용 이미지 4장`. 0장이면 붙이지 않는다 —
+      // 「착용 이미지 0장」은 알려주는 것이 없다.
+      meta:
+        lookCounts[i] > 0
+          ? `${photo.meta} · 착용 이미지 ${lookCounts[i]}장`
+          : photo.meta,
+    })),
   };
 }
 

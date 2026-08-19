@@ -13,6 +13,8 @@ export type ListedProduct = {
   name: string;
   /** 포맷까지 끝낸 문자열. 통화가 없으면 `undefined`. */
   price?: string;
+  /** 착용 방식. 필터가 없는 목록에서 제품을 구분하는 단서다(UX 감사 U6). */
+  wearType?: string;
   imageUrl?: string;
 };
 
@@ -31,6 +33,15 @@ export function formatPrice(
     maximumFractionDigits: 0,
   }).format(price);
 }
+
+/** 백엔드 enum 을 화면 말로 옮긴다. 시안의 표기를 그대로 쓴다. */
+const WEAR_TYPE_LABEL: Record<WearType, string> = {
+  ONE_SHOULDER: "한쪽 어깨",
+  CROSSBODY: "크로스백",
+  IN_HAND: "손에 듦",
+  WAIST: "허리",
+  BESIDE: "옆에 세움",
+};
 
 /**
  * `id` 나 `name` 이 없는 항목은 뺀다 — 이름 없이 그릴 수도, id 없이 상세로 보낼 수도 없다.
@@ -51,20 +62,14 @@ export function toListedProducts(raw: Product[]): ListedProduct[] {
           product.price != null && product.currency
             ? formatPrice(product.price, product.currency)
             : undefined,
+        wearType: product.wearType
+          ? WEAR_TYPE_LABEL[product.wearType]
+          : undefined,
         imageUrl: product.frontCutUrl,
       },
     ];
   });
 }
-
-/** 백엔드 enum 을 화면 말로 옮긴다. 시안의 표기를 그대로 쓴다. */
-const WEAR_TYPE_LABEL: Record<WearType, string> = {
-  ONE_SHOULDER: "한쪽 어깨",
-  CROSSBODY: "크로스백",
-  IN_HAND: "손에 듦",
-  WAIST: "허리",
-  BESIDE: "옆에 세움",
-};
 
 export type DetailCut = { id: number; imageUrl: string };
 

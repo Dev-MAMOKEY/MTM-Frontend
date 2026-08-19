@@ -442,6 +442,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                 key={product.id}
                 name={product.name}
                 price={product.price}
+                wearType={product.wearType}
                 imageUrl={product.imageUrl}
                 onClick={() => requestWornImage(product.id)}
               />
