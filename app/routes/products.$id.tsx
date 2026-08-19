@@ -108,7 +108,7 @@ function Detail({ detail }: { detail: ProductDetailView }) {
                 aria-pressed={selectedCut === i}
                 onClick={() => setSelectedCut(i)}
                 className={
-                  "size-[52px] bg-surface-base focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-border-emphasis " +
+                  "size-[64px] bg-surface-base focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-border-emphasis " +
                   (selectedCut === i
                     ? "border-2 border-solid border-border-emphasis"
                     : "border border-solid border-border-default")
