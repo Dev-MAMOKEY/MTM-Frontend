@@ -26,3 +26,20 @@ export function createWornImage(
     { token, method: "POST", body: JSON.stringify(body) },
   );
 }
+
+/**
+ * 이미 만든 (기준 이미지, 제품) 조합을 새로 만들어 **교체**한다.
+ *
+ * 생성(`createWornImage`)은 멱등이라 같은 조합이면 저장된 것을 그대로 준다.
+ * 새 그림을 원할 때는 이쪽을 불러야 한다. 다시 만들 대상이 없으면 실패한다.
+ */
+export function regenerateWornImage(
+  token: string,
+  baseImageId: number,
+  body: WornImageCreateRequest,
+) {
+  return apiFetch<WornImage>(
+    `/api/v1/base-images/${baseImageId}/worn-images/regenerate`,
+    { token, method: "POST", body: JSON.stringify(body) },
+  );
+}
