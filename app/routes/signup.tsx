@@ -5,6 +5,7 @@ import { signup } from "../api/auth.server";
 import { ApiError } from "../api/client.server";
 import { hasSession } from "../api/session.server";
 import { FieldError } from "../components/FieldError";
+import { HeroPanel } from "../components/HeroPanel";
 import { FieldInput } from "../components/FieldInput";
 import { OutlineButton } from "../components/OutlineButton";
 import type { Route } from "./+types/signup";
@@ -69,50 +70,54 @@ export default function Signup({ actionData }: Route.ComponentProps) {
     !submitting;
 
   return (
-    <Form
-      method="post"
-      className="mx-auto flex w-[360px] flex-col gap-4 pt-[300px]"
-    >
-      <p className="text-center text-[20px] font-bold tracking-[2px] text-text-primary">
-        MTM
-      </p>
-      <div className="h-[10px]" />
-      <FieldInput
-        label="이메일"
-        name="email"
-        type="email"
-        autoComplete="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <FieldInput
-        label={`비밀번호 (${PASSWORD_MIN}~${PASSWORD_MAX}자)`}
-        name="password"
-        type="password"
-        autoComplete="new-password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <FieldInput
-        label="비밀번호 확인"
-        name="passwordConfirm"
-        type="password"
-        autoComplete="new-password"
-        value={passwordConfirm}
-        onChange={(e) => setPasswordConfirm(e.target.value)}
-      />
-      {actionData?.error ? <FieldError>{actionData.error}</FieldError> : null}
-      <div>
-        <OutlineButton type="submit" disabled={!canSubmit}>
-          {submitting ? "가입 중…" : "가입하기"}
-        </OutlineButton>
-      </div>
-      <p className="text-caption text-text-tertiary">
-        이미 계정이 있으신가요?{" "}
-        <Link to="/login" className="underline">
-          로그인
-        </Link>
-      </p>
-    </Form>
+    <div className="mx-auto flex h-screen w-full max-w-page">
+      <HeroPanel />
+      {/* 시안은 폼을 갈라진 자리에서 133px 안쪽에 둔다 — 가운데 정렬이 아니다 */}
+      <Form
+        method="post"
+        className="flex w-[360px] flex-col gap-4 pt-[300px] lg:ml-[133px]"
+      >
+        <p className="text-center text-[20px] font-bold tracking-[2px] text-text-primary">
+          MTM
+        </p>
+        <div className="h-[10px]" />
+        <FieldInput
+          label="이메일"
+          name="email"
+          type="email"
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <FieldInput
+          label={`비밀번호 (${PASSWORD_MIN}~${PASSWORD_MAX}자)`}
+          name="password"
+          type="password"
+          autoComplete="new-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <FieldInput
+          label="비밀번호 확인"
+          name="passwordConfirm"
+          type="password"
+          autoComplete="new-password"
+          value={passwordConfirm}
+          onChange={(e) => setPasswordConfirm(e.target.value)}
+        />
+        {actionData?.error ? <FieldError>{actionData.error}</FieldError> : null}
+        <div>
+          <OutlineButton type="submit" disabled={!canSubmit}>
+            {submitting ? "가입 중…" : "가입하기"}
+          </OutlineButton>
+        </div>
+        <p className="text-caption text-text-tertiary">
+          이미 계정이 있으신가요?{" "}
+          <Link to="/login" className="underline">
+            로그인
+          </Link>
+        </p>
+      </Form>
+    </div>
   );
 }

@@ -6,6 +6,7 @@ import { getMe, hasBodyInfo, saveBodyInfo } from "../api/members.server";
 import { FieldError } from "../components/FieldError";
 import { FieldInput } from "../components/FieldInput";
 import { Header } from "../components/Header";
+import { HeroPanel } from "../components/HeroPanel";
 import { OutlineButton } from "../components/OutlineButton";
 import { PageTitle } from "../components/PageTitle";
 import { SectionTitle } from "../components/SectionTitle";
@@ -99,49 +100,54 @@ export default function Profile({
   const { setup } = loaderData;
 
   return (
-    <>
+    <div className="flex h-screen flex-col">
       {/* 첫 설정에서는 헤더를 감춘다. 여기서 나가는 길을 열어두면 신체 정보 없이
           착용 화면으로 갔다가 다시 여기로 튕기는 왕복이 생긴다. */}
       {setup ? null : <Header />}
-      <Form
-        method="post"
-        className="flex w-[420px] flex-col gap-[18px] px-[60px] pt-[110px]"
-      >
-        <input type="hidden" name="setup" value={setup ? "1" : "0"} />
-        {/* 첫 설정이어도 같은 화면이다. 시안이 요구하는 건 강제로 뜨는 것과
-            저장해야 넘어가는 것 둘뿐이라 문구는 그대로 둔다. */}
-        <PageTitle>내 정보</PageTitle>
-        <SectionTitle>신체 정보</SectionTitle>
-        <FieldInput
-          label="키 (cm)"
-          name="height"
-          inputMode="numeric"
-          value={height}
-          onChange={(e) => setHeight(e.target.value)}
-          error={heightError}
-        />
-        <FieldInput
-          label="몸무게 (kg)"
-          name="weight"
-          inputMode="numeric"
-          value={weight}
-          onChange={(e) => setWeight(e.target.value)}
-          error={weightError}
-        />
-        {actionData?.error ? <FieldError>{actionData.error}</FieldError> : null}
-        <div className="flex items-center gap-3">
-          <OutlineButton type="submit" disabled={!canSave}>
-            {saving ? "저장 중…" : "저장"}
-          </OutlineButton>
-          {actionData?.saved && !dirty ? (
-            <span className="text-caption text-text-tertiary">저장됨</span>
-          ) : null}
-        </div>
-        <hr className="border-0 border-t border-border-default" />
-        <p className="text-caption text-text-tertiary">
-          이메일 <span className="ml-2">{loaderData.email}</span>
-        </p>
-      </Form>
-    </>
+      {/* 헤더가 있을 때와 없을 때(첫 설정) 모두 나머지 높이를 히어로가 채워야 해서
+          min-h-0 로 남은 높이를 준다. h-screen 을 주면 헤더만큼 넘친다. */}
+      <div className="mx-auto flex min-h-0 w-full max-w-page flex-1">
+        <HeroPanel />
+        <Form
+          method="post"
+          className="flex w-[420px] flex-col gap-[18px] pt-[110px] lg:ml-[133px]"
+        >
+          <input type="hidden" name="setup" value={setup ? "1" : "0"} />
+          {/* 첫 설정이어도 같은 화면이다. 시안이 요구하는 건 강제로 뜨는 것과
+              저장해야 넘어가는 것 둘뿐이라 문구는 그대로 둔다. */}
+          <PageTitle>내 정보</PageTitle>
+          <SectionTitle>신체 정보</SectionTitle>
+          <FieldInput
+            label="키 (cm)"
+            name="height"
+            inputMode="numeric"
+            value={height}
+            onChange={(e) => setHeight(e.target.value)}
+            error={heightError}
+          />
+          <FieldInput
+            label="몸무게 (kg)"
+            name="weight"
+            inputMode="numeric"
+            value={weight}
+            onChange={(e) => setWeight(e.target.value)}
+            error={weightError}
+          />
+          {actionData?.error ? <FieldError>{actionData.error}</FieldError> : null}
+          <div className="flex items-center gap-3">
+            <OutlineButton type="submit" disabled={!canSave}>
+              {saving ? "저장 중…" : "저장"}
+            </OutlineButton>
+            {actionData?.saved && !dirty ? (
+              <span className="text-caption text-text-tertiary">저장됨</span>
+            ) : null}
+          </div>
+          <hr className="border-0 border-t border-border-default" />
+          <p className="text-caption text-text-tertiary">
+            이메일 <span className="ml-2">{loaderData.email}</span>
+          </p>
+        </Form>
+      </div>
+    </div>
   );
 }

@@ -5,6 +5,7 @@ import { ApiError } from "../api/client.server";
 import { login } from "../api/auth.server";
 import { createUserSession, hasSession } from "../api/session.server";
 import { FieldError } from "../components/FieldError";
+import { HeroPanel } from "../components/HeroPanel";
 import { FieldInput } from "../components/FieldInput";
 import { OutlineButton } from "../components/OutlineButton";
 import type { Route } from "./+types/login";
@@ -76,43 +77,47 @@ export default function Login({
   const canSubmit = email.includes("@") && password.length > 0 && !submitting;
 
   return (
-    <Form
-      method="post"
-      className="mx-auto flex w-[360px] flex-col gap-4 pt-[300px]"
-    >
-      <p className="text-center text-[20px] font-bold tracking-[2px] text-text-primary">
-        MTM
-      </p>
-      <div className="h-[10px]" />
-      <input type="hidden" name="redirectTo" value={loaderData.redirectTo} />
-      <FieldInput
-        label="이메일"
-        name="email"
-        type="email"
-        autoComplete="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <FieldInput
-        label="비밀번호"
-        name="password"
-        type="password"
-        autoComplete="current-password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      {actionData?.error ? <FieldError>{actionData.error}</FieldError> : null}
-      <div>
-        <OutlineButton type="submit" disabled={!canSubmit}>
-          {submitting ? "로그인 중…" : "로그인"}
-        </OutlineButton>
-      </div>
-      <p className="text-caption text-text-tertiary">
-        계정이 없으신가요?{" "}
-        <Link to="/signup" className="underline">
-          가입하기
-        </Link>
-      </p>
-    </Form>
+    <div className="mx-auto flex h-screen w-full max-w-page">
+      <HeroPanel />
+      {/* 시안은 폼을 갈라진 자리에서 133px 안쪽에 둔다 — 가운데 정렬이 아니다 */}
+      <Form
+        method="post"
+        className="flex w-[360px] flex-col gap-4 pt-[300px] lg:ml-[133px]"
+      >
+        <p className="text-center text-[20px] font-bold tracking-[2px] text-text-primary">
+          MTM
+        </p>
+        <div className="h-[10px]" />
+        <input type="hidden" name="redirectTo" value={loaderData.redirectTo} />
+        <FieldInput
+          label="이메일"
+          name="email"
+          type="email"
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <FieldInput
+          label="비밀번호"
+          name="password"
+          type="password"
+          autoComplete="current-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        {actionData?.error ? <FieldError>{actionData.error}</FieldError> : null}
+        <div>
+          <OutlineButton type="submit" disabled={!canSubmit}>
+            {submitting ? "로그인 중…" : "로그인"}
+          </OutlineButton>
+        </div>
+        <p className="text-caption text-text-tertiary">
+          계정이 없으신가요?{" "}
+          <Link to="/signup" className="underline">
+            가입하기
+          </Link>
+        </p>
+      </Form>
+    </div>
   );
 }
