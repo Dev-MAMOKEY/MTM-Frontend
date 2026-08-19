@@ -57,10 +57,15 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   );
 
   // 고른 사진을 주소에 둔다 — 새로고침해도 남고 링크로 공유된다.
-  // 고른 적이 없으면 가장 최근 사진이다(시안: "마지막에 쓰던 사진이 선택된 상태").
+  // 고른 적이 없으면 **기준 이미지가 있는** 가장 최근 사진이다. 그냥 최신 사진을
+  // 집으면 그게 기준 이미지가 없을 때 착용 이미지를 만들 수 없는 자리에 떨어진다.
+  // (시안: "마지막에 쓰던 사진이 선택된 상태")
   const asked = Number(new URL(request.url).searchParams.get("photo"));
   const selected =
-    photos.find((photo) => photo.id === asked) ?? photos[0] ?? null;
+    photos.find((photo) => photo.id === asked) ??
+    photos.find((photo) => photo.baseImageId != null) ??
+    photos[0] ??
+    null;
 
   // 고른 제품도 주소에 둔다. 기준 이미지가 있어야 착용 이미지가 성립한다.
   const askedProduct = Number(
