@@ -19,7 +19,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     throw redirect("/");
   }
 
-  // requireAccessToken 이 붙여 보낸 원래 목적지. 로그인 후 그 자리로 돌려보낸다.
+  // requireAuth 가 붙여 보낸 원래 목적지. 로그인 후 그 자리로 돌려보낸다.
   const redirectTo = new URL(request.url).searchParams.get("redirectTo");
 
   return { redirectTo: safeRedirect(redirectTo) };

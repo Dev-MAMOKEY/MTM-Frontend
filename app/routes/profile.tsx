@@ -9,12 +9,12 @@ import { Header } from "../components/Header";
 import { OutlineButton } from "../components/OutlineButton";
 import { PageTitle } from "../components/PageTitle";
 import { SectionTitle } from "../components/SectionTitle";
-import { requireAccessToken } from "../api/session.server";
+import { requireAuth } from "../api/session.server";
 import type { Route } from "./+types/profile";
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-  const token = await requireAccessToken(request, context);
-  const me = await getMe(token);
+  const auth = requireAuth(request, context);
+  const me = await getMe(auth);
 
   // 첫 설정인지는 주소가 아니라 실제 데이터로 판단한다. ?setup=1 만 믿으면
   // 값이 이미 있는 사람이 주소를 쳐서 첫 설정 화면을 볼 수 있다.
@@ -34,7 +34,7 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
-  const token = await requireAccessToken(request, context);
+  const auth = requireAuth(request, context);
   const form = await request.formData();
   const heightCm = Number(form.get("height"));
   const weightKg = Number(form.get("weight"));
@@ -46,7 +46,7 @@ export async function action({ request, context }: Route.ActionArgs) {
   }
 
   try {
-    await saveBodyInfo(token, { heightCm, weightKg });
+    await saveBodyInfo(auth, { heightCm, weightKg });
   } catch (error) {
     if (error instanceof ApiError) {
       return { error: error.message || "저장하지 못했습니다.", saved: false };

@@ -16,7 +16,7 @@ import { toListedProducts, toProductDetail } from "../api/product";
 import { getProduct, getProducts } from "../api/products.server";
 import { ACCEPT_ATTRIBUTE } from "../api/photo";
 import { getPhotos } from "../api/photos.server";
-import { requireAccessToken } from "../api/session.server";
+import { requireAuth, type Auth } from "../api/session.server";
 import {
   createWornImage,
   getWornImages,
@@ -28,12 +28,12 @@ import type { Route } from "./+types/home";
 const Z3_PRODUCT_COUNT = 20;
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-  const token = await requireAccessToken(request, context);
+  const auth = requireAuth(request, context);
   const [me, allPhotos, productPage] = await Promise.all([
-    getMe(token),
-    getPhotos(token),
+    getMe(auth),
+    getPhotos(auth),
     // Z3 는 훑어보는 자리다. 전체가 필요하면 「전체 →」로 목록 화면에 간다.
-    getProducts(token, { page: 1, size: Z3_PRODUCT_COUNT }),
+    getProducts(auth, { page: 1, size: Z3_PRODUCT_COUNT }),
   ]);
 
   // 신체 정보 없이는 착용 이미지를 만들 수 없다. 첫 로그인이면 여기서 설정으로 보낸다.
@@ -68,7 +68,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   );
   const worn =
     selected?.baseImageId != null && Number.isInteger(askedProduct)
-      ? await findWornImage(token, selected.baseImageId, askedProduct)
+      ? await findWornImage(auth, selected.baseImageId, askedProduct)
       : null;
 
   return {
@@ -89,11 +89,11 @@ export async function loader({ request, context }: Route.LoaderArgs) {
  * 제품 이름과 치수는 목록 응답에 없어 상세를 함께 부른다.
  */
 async function findWornImage(
-  token: string,
+  auth: Auth,
   baseImageId: number,
   productId: number,
 ) {
-  const found = (await getWornImages(token, baseImageId)).find(
+  const found = (await getWornImages(auth, baseImageId)).find(
     (wornImage) => wornImage.productId === productId,
   );
 
@@ -101,7 +101,7 @@ async function findWornImage(
     return null;
   }
 
-  const detail = toProductDetail(await getProduct(token, productId));
+  const detail = toProductDetail(await getProduct(auth, productId));
 
   return {
     imageUrl: found.imageUrl,
@@ -129,7 +129,7 @@ export function meta({}: Route.MetaArgs) {
  * 제품을 왔다 갔다 눌러보는 비교 흐름이 값싼 이유가 이것이다.
  */
 export async function action({ request, context }: Route.ActionArgs) {
-  const token = await requireAccessToken(request, context);
+  const auth = requireAuth(request, context);
   const form = await request.formData();
   const baseImageId = Number(form.get("baseImageId"));
   const productId = Number(form.get("productId"));
@@ -145,7 +145,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 
   try {
     await (regenerate ? regenerateWornImage : createWornImage)(
-      token,
+      auth,
       baseImageId,
       { productId },
     );
