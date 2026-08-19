@@ -6,6 +6,7 @@ import { login } from "../api/auth.server";
 import { createUserSession, hasSession } from "../api/session.server";
 import { FieldError } from "../components/FieldError";
 import { HeroPanel } from "../components/HeroPanel";
+import { Logo } from "../components/Logo";
 import { FieldInput } from "../components/FieldInput";
 import { OutlineButton } from "../components/OutlineButton";
 import type { Route } from "./+types/login";
@@ -84,9 +85,9 @@ export default function Login({
         method="post"
         className="flex w-[360px] flex-col gap-4 pt-[300px] lg:ml-[133px]"
       >
-        <p className="text-center text-[20px] font-bold tracking-[2px] text-text-primary">
-          MTM
-        </p>
+        <div className="flex justify-center">
+          <Logo />
+        </div>
         <div className="h-[10px]" />
         <input type="hidden" name="redirectTo" value={loaderData.redirectTo} />
         <FieldInput

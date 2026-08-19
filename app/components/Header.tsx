@@ -1,5 +1,7 @@
 import { Form, Link } from "react-router";
 
+import { Logo } from "./Logo";
+
 /**
  * 로그인 후 전역 크롬. 좌측 MTM(→ /), 우측 내 정보 · 로그아웃.
  * 로그인 전(`/login`·`/signup`)에는 렌더하지 않는다.
@@ -13,8 +15,8 @@ export function Header() {
     // 끊기면 브랜드 바 역할을 못 한다.
     <header className="w-full bg-surface-header text-text-inverse">
       <div className="mx-auto flex w-full max-w-page items-center justify-between px-6 py-[14px]">
-      <Link to="/" className="text-[15px] font-bold tracking-[1px]">
-        MTM
+      <Link to="/" aria-label="MTM 홈">
+        <Logo inverse />
       </Link>
       <nav className="flex items-center gap-3 text-[11px]">
         <Link to="/profile">내 정보</Link>
