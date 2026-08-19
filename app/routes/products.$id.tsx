@@ -4,7 +4,7 @@ import { Link } from "react-router";
 import { ApiError } from "../api/client.server";
 import { toProductDetail, type ProductDetailView } from "../api/product";
 import { getProduct } from "../api/products.server";
-import { requireAccessToken } from "../api/session.server";
+import { requireAuth } from "../api/session.server";
 import { EmptyState } from "../components/EmptyState";
 import { Header } from "../components/Header";
 import { OutlineButton } from "../components/OutlineButton";
@@ -16,7 +16,7 @@ export function meta({ loaderData }: Route.MetaArgs) {
 }
 
 export async function loader({ request, params, context }: Route.LoaderArgs) {
-  const token = await requireAccessToken(request, context);
+  const auth = requireAuth(request, context);
   const id = Number(params.id);
 
   // 주소는 손으로 고칠 수 있다. 숫자가 아니면 백엔드에 물어볼 것도 없다.
@@ -25,7 +25,7 @@ export async function loader({ request, params, context }: Route.LoaderArgs) {
   }
 
   try {
-    const detail = toProductDetail(await getProduct(token, id));
+    const detail = toProductDetail(await getProduct(auth, id));
 
     return detail
       ? { detail, error: null }

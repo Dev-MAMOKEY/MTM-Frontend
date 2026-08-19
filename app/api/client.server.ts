@@ -16,14 +16,13 @@ export class ApiError extends Error {
     readonly status: number,
     readonly url: string,
     /** 백엔드가 코드·메시지를 준 경우에만 채워진다. */
-    readonly info?: ErrorInfo,
-  ) {
+    readonly info?: ErrorInfo) {
     super(info?.message ?? `API ${status} ${url}`);
     this.name = "ApiError";
   }
 }
 
-type ApiFetchOptions = RequestInit & {
+export type ApiFetchOptions = RequestInit & {
   /** 로그인 세션의 액세스 토큰. `auth/*` 를 뺀 모든 엔드포인트가 요구한다. */
   token?: string;
 };
@@ -43,19 +42,16 @@ function logRequest(
   url: string,
   status: number,
   ms: number,
-  failure?: ErrorInfo,
-) {
+  failure?: ErrorInfo) {
   // 백엔드는 실패를 200 + success:false 로도 준다. 상태 코드만 찍으면 성공처럼 보인다.
   const tail = failure ? ` ${failure.code ?? "FAILED"}` : "";
   console.log(
-    `→ ${method} ${url}\n${failure ? "✗" : "←"} ${status}${tail} (${Math.round(ms)}ms)`,
-  );
+    `→ ${method} ${url}\n${failure ? "✗" : "←"} ${status}${tail} (${Math.round(ms)}ms)`);
 }
 
 export async function apiFetch<T>(
   path: string,
-  { token, ...init }: ApiFetchOptions = {},
-): Promise<T> {
+  { token, ...init }: ApiFetchOptions = {}): Promise<T> {
   const url = `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
   const method = init.method ?? "GET";
   const startedAt = performance.now();
@@ -85,8 +81,7 @@ export async function apiFetch<T>(
       url,
       response.status,
       performance.now() - startedAt,
-      failed ? (body?.error ?? {}) : undefined,
-    );
+      failed ? (body?.error ?? {}) : undefined);
   }
 
   if (failed) {

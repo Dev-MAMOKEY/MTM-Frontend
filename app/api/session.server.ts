@@ -13,7 +13,7 @@ import {
 } from "react-router";
 
 import { reissue } from "./auth.server";
-import { ApiError } from "./client.server";
+import { apiFetch, ApiError, type ApiFetchOptions } from "./client.server";
 
 /**
  * 쿠키 서명용 비밀키. 없으면 아무나 세션 쿠키를 위조할 수 있으므로
@@ -23,8 +23,7 @@ const sessionSecret = process.env.SESSION_SECRET;
 
 if (!sessionSecret) {
   throw new Error(
-    "환경변수 SESSION_SECRET 이 없다. `cp .env.example .env` 후 값을 채운다.",
-  );
+    "환경변수 SESSION_SECRET 이 없다. `cp .env.example .env` 후 값을 채운다.");
 }
 
 const storage = createCookieSessionStorage({
@@ -60,28 +59,6 @@ type AuthState = {
 
 export const authContext = createContext<AuthState>();
 
-/** 재발급까지 남은 여유. 요청이 오가는 동안 만료되는 것을 막는다. */
-const EXPIRY_SKEW_MS = 30_000;
-
-/**
- * 액세스 토큰의 만료 시각을 읽는다.
- *
- * 서명은 확인하지 않는다 — 그건 백엔드의 일이고, 여기서는 "언제 다시 받아야 하나"만
- * 알면 된다. 읽을 수 없는 모양이면 만료된 것으로 보고 재발급을 시도한다.
- */
-function isExpired(accessToken: string) {
-  try {
-    const payload = accessToken.split(".")[1];
-    const { exp } = JSON.parse(
-      Buffer.from(payload, "base64url").toString("utf8"),
-    ) as { exp?: number };
-
-    return exp == null || exp * 1000 - EXPIRY_SKEW_MS <= Date.now();
-  } catch {
-    return true;
-  }
-}
-
 /** middleware 가 요청 시작에 부른다. 쿠키에서 토큰을 꺼내 요청 동안 들고 있을 상태를 만든다. */
 export async function readAuthState(request: Request): Promise<AuthState> {
   const session = await getSession(request);
@@ -113,8 +90,7 @@ export async function commitAuthState(request: Request, state: AuthState) {
 export async function createUserSession(
   request: Request,
   tokens: Tokens,
-  redirectTo: string,
-) {
+  redirectTo: string) {
   const session = await getSession(request);
   session.set("accessToken", tokens.accessToken);
   session.set("refreshToken", tokens.refreshToken);
@@ -128,8 +104,7 @@ function loginRedirect(request: Request) {
   const { pathname, search } = new URL(request.url);
   const redirectTo = `${pathname}${search}`;
   const params = new URLSearchParams(
-    redirectTo === "/" ? undefined : { redirectTo },
-  );
+    redirectTo === "/" ? undefined : { redirectTo });
 
   return redirect(`/login?${params}`);
 }
@@ -140,29 +115,56 @@ export function hasSession(context: Readonly<RouterContextProvider>) {
 }
 
 /**
+ * 백엔드를 부를 수 있는 인증 핸들. loader·action 은 토큰 문자열 대신 이것을 받는다.
+ *
+ * 401 을 받으면 리프레시 토큰으로 새 토큰을 받아 **같은 요청을 한 번만** 다시 보낸다.
+ * 만료를 미리 점치지 않는다 — 토큰의 exp 를 읽어 판단하면 서버 시계가 어긋날 때
+ * 오판하고, 비밀번호 변경처럼 exp 가 남았는데 서버가 거절하는 경우를 놓친다.
+ * 서버가 거절했다는 사실만 보고 움직인다.
+ */
+export type Auth = {
+  fetch<T>(path: string, init?: Omit<ApiFetchOptions, "token">): Promise<T>;
+};
+
+/**
  * 로그인이 필요한 화면에서 쓴다. 토큰이 없으면 로그인 화면으로 보낸다.
  * 원래 가려던 곳을 `redirectTo` 로 넘겨 로그인 후 그 자리로 돌아오게 한다.
- *
- * 액세스 토큰이 만료됐으면 **부르기 전에** 리프레시 토큰으로 새로 받는다.
- * 401 을 받고 나서 되돌리는 방식이 아니라 미리 갈아끼우는 쪽을 택했다 —
- * 파일 업로드처럼 본문을 한 번밖에 못 읽는 요청은 되돌려 다시 보낼 수 없다.
  */
-export async function requireAccessToken(
+export function requireAuth(
   request: Request,
-  context: Readonly<RouterContextProvider>,
-) {
+  context: Readonly<RouterContextProvider>): Auth {
   const state = context.get(authContext);
 
   if (!state.tokens) {
     throw loginRedirect(request);
   }
 
-  if (!isExpired(state.tokens.accessToken)) {
-    return state.tokens.accessToken;
-  }
+  return {
+    async fetch(path, init) {
+      try {
+        return await apiFetch(path, {
+          ...init,
+          token: state.tokens!.accessToken,
+        });
+      } catch (error) {
+        if (!(error instanceof ApiError) || error.status !== 401) {
+          throw error;
+        }
 
+        // 재발급 후 한 번만 다시 보낸다. 그러고도 401 이면 토큰 문제가 아니다.
+        return await apiFetch(path, {
+          ...init,
+          token: await refresh(request, state),
+        });
+      }
+    },
+  };
+}
+
+/** 리프레시 토큰으로 액세스 토큰을 새로 받는다. 실패하면 세션을 버린다. */
+async function refresh(request: Request, state: AuthState) {
   try {
-    const next = await reissue({ refreshToken: state.tokens.refreshToken });
+    const next = await reissue({ refreshToken: state.tokens!.refreshToken });
 
     if (!next.accessToken) {
       throw new Error("재발급 응답에 액세스 토큰이 없다");
@@ -172,7 +174,7 @@ export async function requireAccessToken(
       accessToken: next.accessToken,
       // 재발급은 액세스 토큰만 바꾼다 — "리프레시 토큰은 그대로 유지된다".
       // 응답이 돌려주지 않을 수 있으므로 없으면 쓰던 것을 그대로 둔다.
-      refreshToken: next.refreshToken ?? state.tokens.refreshToken,
+      refreshToken: next.refreshToken ?? state.tokens!.refreshToken,
     };
     state.refreshed = true;
 

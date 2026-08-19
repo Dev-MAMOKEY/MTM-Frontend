@@ -5,26 +5,23 @@
  * 모델을 다시 부르지 않고 저장된 것을 즉시 준다. 제품을 왔다 갔다 눌러보는
  * 비교 흐름이 값싼 이유가 이것이다.
  */
-import { apiFetch } from "./client.server";
+import type { Auth } from "./session.server";
 import type { WornImage, WornImageCreateRequest } from "./types";
 
 /** 최신순으로 온다. */
-export function getWornImages(token: string, baseImageId: number) {
-  return apiFetch<WornImage[]>(
+export function getWornImages(auth: Auth, baseImageId: number) {
+  return auth.fetch<WornImage[]>(
     `/api/v1/base-images/${baseImageId}/worn-images`,
-    { token },
-  );
+    );
 }
 
 export function createWornImage(
-  token: string,
+  auth: Auth,
   baseImageId: number,
-  body: WornImageCreateRequest,
-) {
-  return apiFetch<WornImage>(
+  body: WornImageCreateRequest) {
+  return auth.fetch<WornImage>(
     `/api/v1/base-images/${baseImageId}/worn-images`,
-    { token, method: "POST", body: JSON.stringify(body) },
-  );
+    { method: "POST", body: JSON.stringify(body) });
 }
 
 /**
@@ -34,12 +31,10 @@ export function createWornImage(
  * 새 그림을 원할 때는 이쪽을 불러야 한다. 다시 만들 대상이 없으면 실패한다.
  */
 export function regenerateWornImage(
-  token: string,
+  auth: Auth,
   baseImageId: number,
-  body: WornImageCreateRequest,
-) {
-  return apiFetch<WornImage>(
+  body: WornImageCreateRequest) {
+  return auth.fetch<WornImage>(
     `/api/v1/base-images/${baseImageId}/worn-images/regenerate`,
-    { token, method: "POST", body: JSON.stringify(body) },
-  );
+    { method: "POST", body: JSON.stringify(body) });
 }

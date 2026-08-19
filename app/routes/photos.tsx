@@ -19,7 +19,7 @@ import {
 } from "../api/photo";
 import { deletePhoto, getPhotos, uploadPhoto } from "../api/photos.server";
 import { getWornImages } from "../api/worn-images.server";
-import { requireAccessToken } from "../api/session.server";
+import { requireAuth } from "../api/session.server";
 import type { Route } from "./+types/photos";
 
 export function meta({}: Route.MetaArgs) {
@@ -40,10 +40,10 @@ function formatUploadedAt(createdAt: string | undefined) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-  const token = await requireAccessToken(request, context);
+  const auth = requireAuth(request, context);
 
   // 이미지 없는 사진은 카드로 그릴 게 없다.
-  const photos = (await getPhotos(token)).flatMap((photo) =>
+  const photos = (await getPhotos(auth)).flatMap((photo) =>
     photo.id == null || !photo.imageUrl
       ? []
       : [
@@ -64,7 +64,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     photos.map((photo) =>
       photo.baseImageId == null
         ? Promise.resolve(0)
-        : getWornImages(token, photo.baseImageId)
+        : getWornImages(auth, photo.baseImageId)
             .then((wornImages) => wornImages.length)
             .catch(() => 0),
     ),
@@ -76,7 +76,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
-  const token = await requireAccessToken(request, context);
+  const auth = requireAuth(request, context);
   const form = await request.formData();
 
   const intent = form.get("intent");
@@ -90,11 +90,11 @@ export async function action({ request, context }: Route.ActionArgs) {
       }
 
       if (intent === "delete") {
-        await deletePhoto(token, photoId);
+        await deletePhoto(auth, photoId);
       } else if (intent === "create-base-image") {
-        await createBaseImage(token, photoId);
+        await createBaseImage(auth, photoId);
       } else {
-        await regenerateBaseImage(token, photoId);
+        await regenerateBaseImage(auth, photoId);
       }
     } else {
       const file = form.get("file");
@@ -110,7 +110,7 @@ export async function action({ request, context }: Route.ActionArgs) {
         };
       }
 
-      await uploadPhoto(token, file);
+      await uploadPhoto(auth, file);
     }
   } catch (error) {
     if (error instanceof ApiError) {

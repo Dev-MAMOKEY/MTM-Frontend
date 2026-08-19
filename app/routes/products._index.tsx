@@ -3,7 +3,7 @@ import { redirect, useNavigate, useRevalidator } from "react-router";
 import { ApiError } from "../api/client.server";
 import { toListedProducts, type ListedProduct } from "../api/product";
 import { getProducts } from "../api/products.server";
-import { requireAccessToken } from "../api/session.server";
+import { requireAuth } from "../api/session.server";
 import { EmptyState } from "../components/EmptyState";
 import { Header } from "../components/Header";
 import { OutlineButton } from "../components/OutlineButton";
@@ -26,11 +26,11 @@ function parsePage(value: string | null) {
 }
 
 export async function loader({ request, context }: Route.LoaderArgs) {
-  const token = await requireAccessToken(request, context);
+  const auth = requireAuth(request, context);
   const page = parsePage(new URL(request.url).searchParams.get("page"));
 
   try {
-    const result = await getProducts(token, { page, size: PAGE_SIZE });
+    const result = await getProducts(auth, { page, size: PAGE_SIZE });
 
     // 범위를 넘는 페이지는 빈 목록으로 돌아온다. 그대로 그리면 제품이 있는데도
     // "등록된 제품이 없습니다" 가 뜬다. 첫 페이지로 돌려보낸다.
