@@ -33,6 +33,7 @@ export type WearType = NonNullable<ProductDetail["wearType"]>;
 export type Photo = Schemas["PhotoResponse"];
 export type BaseImage = Schemas["BaseImageResponse"];
 export type WornImage = Schemas["WornImageResponse"];
+export type WornImageCreateRequest = Schemas["WornImageCreateRequest"];
 export type Member = Schemas["MemberResponseDTO"];
 export type Token = Schemas["TokenResponseDTO"];
 

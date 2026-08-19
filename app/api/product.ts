@@ -76,6 +76,8 @@ export type ProductDetailView = {
   description?: string;
   /** `가로` · `세로` · `깊이`. 값이 없는 줄은 아예 빠진다. */
   dimensions: { label: string; value: string }[];
+  /** 착용 화면의 한 줄 표기 `14.2 × 11.8 IN`. 가로·세로가 다 있어야 만든다. */
+  sizeLabel?: string;
   cuts: DetailCut[];
   /** `cuts` 안에서 처음 보여줄 컷의 위치. 정면 컷이 있으면 그것. */
   initialCut: number;
@@ -129,6 +131,10 @@ export function toProductDetail(raw: ProductDetail): ProductDetailView | null {
     wearType: raw.wearType ? WEAR_TYPE_LABEL[raw.wearType] : undefined,
     description: raw.description || undefined,
     dimensions: toDimensionRows(raw.dimensions),
+    sizeLabel:
+      raw.dimensions?.widthIn != null && raw.dimensions.heightIn != null
+        ? `${raw.dimensions.widthIn.toFixed(1)} × ${raw.dimensions.heightIn.toFixed(1)} IN`
+        : undefined,
     cuts: cuts.map((cut) => ({ id: cut.id, imageUrl: cut.imageUrl })),
     initialCut: frontIndex === -1 ? 0 : frontIndex,
   };

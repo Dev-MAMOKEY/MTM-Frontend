@@ -10,7 +10,6 @@ import { PageTitle } from "../components/PageTitle";
 import { PhotoCard } from "../components/PhotoCard";
 import {
   createBaseImage,
-  getWornImages,
   regenerateBaseImage,
 } from "../api/base-images.server";
 import {
@@ -19,6 +18,7 @@ import {
   isAcceptedImage,
 } from "../api/photo";
 import { deletePhoto, getPhotos, uploadPhoto } from "../api/photos.server";
+import { getWornImages } from "../api/worn-images.server";
 import { requireAccessToken } from "../api/session.server";
 import type { Route } from "./+types/photos";
 
