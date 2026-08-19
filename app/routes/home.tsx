@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, redirect, useFetcher, useNavigate } from "react-router";
 
 import { SpecTag } from "../components/SpecTag";
@@ -208,6 +208,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     }
 
     lastProductId.current = productId;
+    setCleared(false);
     wornImage.submit(
       {
         intent,
@@ -234,6 +235,14 @@ export default function Home({ loaderData }: Route.ComponentProps) {
    * 다시 시도는 사용자가 버튼으로 정한다.
    */
   const attempted = useRef<string | null>(null);
+  /**
+   * 선택을 지웠는지.
+   *
+   * fetcher 의 `data` 는 화면을 옮겨도 남는다. 실패한 뒤 선택을 지우면 주소에서는
+   * 제품이 사라졌는데 실패 결과가 그대로 있어, 「만들지 못했습니다」가 계속 뜬다.
+   * 새 요청을 보내면 다시 내린다.
+   */
+  const [cleared, setCleared] = useState(false);
   const pendingKey =
     askedProductId != null && selected?.baseImageId != null && !worn
       ? `${selected.baseImageId}:${askedProductId}`
@@ -259,7 +268,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         ? "no-base"
         : generatingWorn
           ? "generating"
-          : wornImage.data?.error
+          : wornImage.data?.error && !cleared
             ? "failed"
             : worn
               ? "ready"
@@ -382,9 +391,10 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             }
             // 제품만 지우고 사진은 남긴다. 주소를 통째로 다시 만들어 product 가
             // 남는 일이 없게 한다.
-            onClear={() =>
-              navigate(selected ? `/?photo=${selected.id}` : "/")
-            }
+            onClear={() => {
+              setCleared(true);
+              navigate(selected ? `/?photo=${selected.id}` : "/");
+            }}
           />
         </section>
 
