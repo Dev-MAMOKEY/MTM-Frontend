@@ -118,6 +118,7 @@ export default function Signup({ actionData }: Route.ComponentProps) {
           label={`비밀번호 (${PASSWORD_MIN}~${PASSWORD_MAX}자)`}
           name="password"
           type="password"
+          revealable
           placeholder={`${PASSWORD_MIN}~${PASSWORD_MAX}자`}
           autoComplete="new-password"
           value={password}
@@ -127,6 +128,7 @@ export default function Signup({ actionData }: Route.ComponentProps) {
           label="비밀번호 확인"
           name="passwordConfirm"
           type="password"
+          revealable
           placeholder="한 번 더 입력"
           autoComplete="new-password"
           value={passwordConfirm}

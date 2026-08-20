@@ -103,6 +103,7 @@ export default function Login({
           label="비밀번호"
           name="password"
           type="password"
+          revealable
           placeholder="비밀번호 입력"
           autoComplete="current-password"
           value={password}
