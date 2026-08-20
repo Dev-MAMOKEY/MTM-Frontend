@@ -30,6 +30,30 @@ npm run dev
 
 `.env` 는 깃에 올리지 않는다. 키 이름과 형식은 `.env.example` 에만 둔다.
 
+## 배포
+
+Vercel 에 올린다. **환경변수를 먼저 넣어야 한다.**
+
+| 이름 | 값 |
+|---|---|
+| `API_BASE_URL` | 백엔드 주소. **백엔드가 평문 HTTP 면 `http://` 로 넣는다** |
+| `SESSION_SECRET` | 무작위 문자열. 로컬과 다른 값을 쓴다 |
+
+`API_DOCS_URL` 은 넣지 않는다 — 타입 생성 스크립트만 쓰는 값이라 런타임에 필요 없다.
+
+Vercel 은 Production · Preview · Development 를 따로 관리한다. 넣지 않은 환경은
+서버가 뜨는 순간 예외를 던지고 `FUNCTION_INVOCATION_FAILED` 로 죽는다.
+
+### 배포에서 겪은 두 가지
+
+- **`FUNCTION_INVOCATION_FAILED`** — 환경변수가 없다. 값이 없으면 모듈이 로드되는
+  순간 던지도록 만들어 뒀다. 그대로 두면 요청 때 `undefined/products` 로 조용히
+  404 가 나서 원인을 찾을 수 없다.
+- **`SSL routines::wrong version number`** — `API_BASE_URL` 이 `https://` 인데
+  백엔드가 그 포트에서 평문 HTTP 를 쓴다. 백엔드 주소의 스킴을 맞춘다.
+  Vercel 이 HTTPS 라도 `http://` 백엔드를 부를 수 있다 — 혼합 콘텐츠는 브라우저
+  규칙이고, 이 호출은 서버가 한다.
+
 ## API 타입
 
 백엔드 스키마는 Swagger(OpenAPI) 문서에서 **생성**한다. 손으로 적으면 백엔드가 필드를
