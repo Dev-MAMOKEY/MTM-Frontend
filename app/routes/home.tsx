@@ -306,7 +306,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     state === "no-base";
 
   return (
-    <div className="flex h-screen flex-col bg-surface-base">
+    <div className="flex min-h-screen flex-col bg-surface-base lg:h-screen">
       <Header />
 
       {/* Z1 · 내 사진 */}
@@ -318,7 +318,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           </Link>
         </div>
         {hasPhoto ? (
-          <div className="flex items-center gap-2">
+          // 시안: 「내 사진 (가로 스크롤 →)」. 사진이 늘어도 줄이 접히지 않는다
+          <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 lg:mx-0 lg:px-0">
             {photos.map((photo, i) => (
               <PhotoThumb
                 key={photo.id}
@@ -392,11 +393,11 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         ) : null}
       </section>
 
-      <div className="mx-auto flex w-full max-w-page flex-1 items-start overflow-hidden">
+      <div className="mx-auto flex w-full max-w-page flex-1 flex-col items-start lg:flex-row lg:overflow-hidden">
         {/* Z2 · LookStage */}
         <section
           className={
-            "flex h-full min-w-px flex-1 flex-col gap-[10px] border-r border-solid border-border-default p-5 " +
+            "flex w-full min-w-px flex-1 flex-col gap-[10px] border-b border-solid border-border-default p-4 lg:h-full lg:w-auto lg:border-b-0 lg:border-r lg:p-5 " +
             (dimStage ? "opacity-35" : "")
           }
         >
@@ -422,7 +423,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         {/* Z3 · 제품 */}
         <section
           className={
-            "flex h-full w-[300px] shrink-0 flex-col gap-[10px] overflow-y-auto p-5 " +
+            "flex w-full shrink-0 flex-col gap-[10px] p-4 lg:h-full lg:w-[300px] lg:overflow-y-auto lg:p-5 " +
             (dimProducts ? "opacity-35" : "")
           }
         >
@@ -436,7 +437,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           </div>
           {/* 타일을 누르면 상세로 가지 않고 그 자리에서 착용 이미지를 만든다.
               비교 흐름(F3)이 이 서비스의 값어치인데 매번 상세를 거치면 끊긴다. */}
-          <div className="grid grid-cols-2 gap-3">
+                      {/* 모바일은 가로 스크롤 한 줄, PC 는 2열 격자다 (Figma 8:1003) */}
+            <div className="-mx-4 flex gap-[10px] overflow-x-auto px-4 lg:mx-0 lg:grid lg:grid-cols-2 lg:gap-3 lg:overflow-visible lg:px-0">
             {products.map((product) => (
               <ProductTile
                 key={product.id}

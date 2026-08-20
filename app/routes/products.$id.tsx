@@ -80,9 +80,9 @@ function Detail({ detail }: { detail: ProductDetailView }) {
   const cut = detail.cuts[selectedCut];
 
   return (
-    <div className="mx-auto flex w-full max-w-page flex-1 items-start">
+    <div className="mx-auto flex w-full max-w-page flex-1 flex-col items-start lg:flex-row">
       {/* 좌 — 제품 컷 */}
-      <div className="flex h-full min-w-px flex-1 flex-col gap-3 border-r border-solid border-border-default px-10 py-7">
+      <div className="flex w-full min-w-px flex-1 flex-col gap-3 px-4 py-4 lg:h-full lg:w-auto lg:border-r lg:border-solid lg:border-border-default lg:px-10 lg:py-7">
         {/* 컷 원본이 거의 정사각이다. 가로로만 넓은 칸에 object-contain 을 쓰면 짧은 쪽인
             높이에 맞춰져서, 칸을 아무리 넓혀도 이미지는 커지지 않고 좌우 여백만 늘어난다.
             칸을 정사각으로 두고 폭 상한을 줘서 이미지가 실제로 커지게 한다. */}
@@ -90,10 +90,10 @@ function Detail({ detail }: { detail: ProductDetailView }) {
           <img
             src={cut.imageUrl}
             alt=""
-            className="mx-auto aspect-square w-full max-w-[720px] border border-solid border-border-default bg-surface-base object-contain"
+            className="mx-auto h-[220px] w-full border border-solid border-border-default bg-surface-base object-contain lg:aspect-square lg:h-auto lg:max-w-[720px]"
           />
         ) : (
-          <div className="mx-auto flex aspect-square w-full max-w-[720px] flex-col items-center justify-center border border-solid border-border-default bg-surface-track text-[11px] text-text-tertiary">
+          <div className="mx-auto flex h-[220px] w-full flex-col items-center justify-center border border-solid border-border-default bg-surface-track text-[11px] text-text-tertiary lg:aspect-square lg:h-auto lg:max-w-[720px]">
             제품 컷
           </div>
         )}
@@ -127,7 +127,7 @@ function Detail({ detail }: { detail: ProductDetailView }) {
       </div>
 
       {/* 우 — 스펙. 크기를 입어보기 버튼 바로 위에 둔다 */}
-      <div className="flex h-full w-[380px] shrink-0 flex-col gap-[10px] p-7">
+      <div className="flex w-full flex-col gap-[10px] px-4 pb-4 lg:h-full lg:w-[380px] lg:shrink-0 lg:p-7">
         <h1 className="text-[20px] font-bold text-text-primary">{detail.name}</h1>
         {detail.price ? (
           <p className="text-body text-text-secondary">{detail.price}</p>
@@ -154,12 +154,17 @@ function Detail({ detail }: { detail: ProductDetailView }) {
         ) : null}
 
         <div className="h-[8px]" />
-        <div>
-          {/* 여기서 만들지 않고 착용 화면으로 보낸다. 생성이 동기라 최대 2분 걸리는데
-              그동안 보여줄 로딩 자리가 이 화면에는 없고, 착용 화면에는 로딩·실패·완료가
-              시안대로 이미 있다. 그 화면이 조합을 보고 없으면 만든다. */}
-          <Link to={`/?product=${detail.id}`}>
-            <OutlineButton type="button">이 제품 입어보기</OutlineButton>
+        {/* 여기서 만들지 않고 착용 화면으로 보낸다. 생성이 동기라 최대 2분 걸리는데
+            그동안 보여줄 로딩 자리가 이 화면에는 없고, 착용 화면에는 로딩·실패·완료가
+            시안대로 이미 있다. 그 화면이 조합을 보고 없으면 만든다.
+
+            모바일은 하단 고정이다(시안 8:1062) — 상세를 읽어 내려가다 「그럼 내 몸엔?」이
+            떠오르는 순간에 버튼이 화면 밖에 있으면 안 된다. */}
+        <div className="sticky bottom-0 -mx-4 border-t border-solid border-border-default bg-surface-base px-4 py-3 lg:static lg:mx-0 lg:border-0 lg:p-0">
+          <Link to={`/?product=${detail.id}`} className="block">
+            <OutlineButton type="button" className="w-full lg:w-auto">
+              이 제품 입어보기
+            </OutlineButton>
           </Link>
         </div>
 
