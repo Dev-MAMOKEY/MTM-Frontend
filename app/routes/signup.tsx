@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Form, Link, redirect, useNavigation } from "react-router";
 
-import { signup } from "../api/auth.server";
+import { login, signup } from "../api/auth.server";
 import { ApiError } from "../api/client.server";
-import { hasSession } from "../api/session.server";
+import { createUserSession, hasSession } from "../api/session.server";
 import { FieldError } from "../components/FieldError";
 import { HeroPanel } from "../components/HeroPanel";
 import { Logo } from "../components/Logo";
@@ -53,7 +53,23 @@ export async function action({ request }: Route.ActionArgs) {
     throw error;
   }
 
-  // 가입 응답에 토큰이 없다(RsDataString). 바로 로그인시킬 수 없어 로그인 화면으로 보낸다.
+  // 가입 응답에는 토큰이 없다(RsDataString). 하지만 방금 받은 값을 우리가 들고 있으니
+  // 대신 로그인해준다 — 같은 이메일·비밀번호를 두 번 치게 할 이유가 없다.
+  try {
+    const tokens = await login({ email, password });
+
+    if (tokens.accessToken && tokens.refreshToken) {
+      return await createUserSession(
+        request,
+        { accessToken: tokens.accessToken, refreshToken: tokens.refreshToken },
+        // 가입한 계정은 신체 정보가 없어 착용 화면이 첫 설정으로 이어준다.
+        "/",
+      );
+    }
+  } catch {
+    // 자동 로그인이 실패해도 가입은 이미 됐다. 실패로 되돌리지 않고 로그인 화면으로 보낸다.
+  }
+
   return redirect("/login");
 }
 
@@ -64,10 +80,17 @@ export default function Signup({ actionData }: Route.ComponentProps) {
   const navigation = useNavigation();
 
   const submitting = navigation.state === "submitting";
+  // 확인 칸을 채우는 동안 알린다. 비어 있을 때는 아직 틀린 것이 아니므로 말하지 않는다.
+  const confirmError =
+    passwordConfirm && passwordConfirm !== password
+      ? "비밀번호가 서로 다릅니다"
+      : undefined;
   const canSubmit =
     email.includes("@") &&
     password.length >= PASSWORD_MIN &&
+    password.length <= PASSWORD_MAX &&
     passwordConfirm.length > 0 &&
+    !confirmError &&
     !submitting;
 
   return (
@@ -86,6 +109,7 @@ export default function Signup({ actionData }: Route.ComponentProps) {
           label="이메일"
           name="email"
           type="email"
+          placeholder="name@example.com"
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -94,6 +118,7 @@ export default function Signup({ actionData }: Route.ComponentProps) {
           label={`비밀번호 (${PASSWORD_MIN}~${PASSWORD_MAX}자)`}
           name="password"
           type="password"
+          placeholder={`${PASSWORD_MIN}~${PASSWORD_MAX}자`}
           autoComplete="new-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -102,9 +127,11 @@ export default function Signup({ actionData }: Route.ComponentProps) {
           label="비밀번호 확인"
           name="passwordConfirm"
           type="password"
+          placeholder="한 번 더 입력"
           autoComplete="new-password"
           value={passwordConfirm}
           onChange={(e) => setPasswordConfirm(e.target.value)}
+          error={confirmError}
         />
         {actionData?.error ? <FieldError>{actionData.error}</FieldError> : null}
         <div>
