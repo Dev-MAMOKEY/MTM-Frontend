@@ -106,12 +106,12 @@ export default function Profile({
       {setup ? null : <Header />}
       {/* 헤더가 있을 때와 없을 때(첫 설정) 모두 나머지 높이를 히어로가 채워야 해서
           min-h-0 로 남은 높이를 준다. h-screen 을 주면 헤더만큼 넘친다. */}
-      <div className="mx-auto flex min-h-0 w-full max-w-page flex-1 overflow-y-auto">
+      <div className="mx-auto flex min-h-0 w-full max-w-page flex-1 flex-col overflow-y-auto lg:flex-row">
         <HeroPanel />
         {/* 시안(8:373)의 폼 위치는 top 384 — 헤더(46) 아래 338px 이다. */}
         <Form
           method="post"
-          className="flex w-[420px] flex-col gap-[18px] pt-[338px] lg:ml-[133px]"
+          className="flex w-full max-w-[420px] flex-col gap-[18px] px-4 pt-10 lg:px-0 lg:pt-[338px] lg:ml-[133px]"
         >
           <input type="hidden" name="setup" value={setup ? "1" : "0"} />
           {/* 첫 설정이어도 같은 화면이다. 시안이 요구하는 건 강제로 뜨는 것과

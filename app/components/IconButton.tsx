@@ -9,7 +9,7 @@ export function IconButton({
     <button
       {...props}
       className={
-        "flex size-[32px] items-center justify-center rounded-[16px] border border-solid border-border-emphasis bg-surface-track text-[11px] text-text-tertiary " +
+        "flex size-[30px] items-center justify-center rounded-[15px] lg:size-[32px] lg:rounded-[16px] border border-solid border-border-emphasis bg-surface-track text-[11px] text-text-tertiary " +
         "focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-border-emphasis " +
         className
       }

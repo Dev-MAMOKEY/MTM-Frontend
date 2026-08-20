@@ -71,12 +71,12 @@ export default function Signup({ actionData }: Route.ComponentProps) {
     !submitting;
 
   return (
-    <div className="mx-auto flex h-screen w-full max-w-page">
+    <div className="mx-auto flex min-h-screen w-full max-w-page flex-col lg:h-screen lg:flex-row">
       <HeroPanel />
       {/* 시안은 폼을 갈라진 자리에서 133px 안쪽에 둔다 — 가운데 정렬이 아니다 */}
       <Form
         method="post"
-        className="flex w-[360px] flex-col gap-4 pt-[300px] lg:ml-[133px]"
+        className="flex w-full max-w-[360px] flex-col gap-4 px-4 pt-10 lg:px-0 lg:pt-[300px] lg:ml-[133px]"
       >
         <div className="flex justify-center">
           <Logo />

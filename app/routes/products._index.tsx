@@ -73,7 +73,7 @@ export default function Products({ loaderData }: Route.ComponentProps) {
   return (
     <div className="flex min-h-screen flex-col bg-surface-base">
       <Header />
-      <main className="mx-auto flex w-full max-w-page flex-col gap-[22px] px-10 py-6">
+      <main className="mx-auto flex w-full max-w-page flex-col gap-[22px] px-4 py-6 lg:px-10">
         <div className="flex w-full items-baseline justify-between">
           <PageTitle>제품</PageTitle>
           {error ? null : (
@@ -101,7 +101,7 @@ export default function Products({ loaderData }: Route.ComponentProps) {
         ) : products.length === 0 ? (
           <EmptyState>아직 등록된 제품이 없습니다.</EmptyState>
         ) : (
-          <div className="grid grid-cols-4 gap-x-5 gap-y-[26px]">
+          <div className="grid grid-cols-2 gap-x-5 gap-y-[26px] lg:grid-cols-4">
             {products.map((product) => (
               <ProductTile
                 key={product.id}

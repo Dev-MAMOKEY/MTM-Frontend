@@ -31,7 +31,7 @@ export function PhotoCard({
   const failure = baseImage.data?.error;
 
   return (
-    <article className="flex w-[440px] flex-col gap-[10px] border border-solid border-border-default p-[14px]">
+    <article className="flex w-full flex-col gap-[10px] border border-solid border-border-default p-[14px] lg:w-[440px]">
       <div className="flex w-full items-start gap-[10px]">
         {imageUrl ? (
           <img
