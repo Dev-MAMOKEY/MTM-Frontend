@@ -1,0 +1,205 @@
+import { useState } from "react";
+import { Link } from "react-router";
+
+import { ApiError } from "../api/client.server";
+import { toProductDetail, type ProductDetailView } from "../api/product";
+import { getProduct } from "../api/products.server";
+import { requireAuth } from "../api/session.server";
+import { EmptyState } from "../components/EmptyState";
+import { Header } from "../components/Header";
+import { OutlineButton } from "../components/OutlineButton";
+import { SpecTag } from "../components/SpecTag";
+import type { Route } from "./+types/products.$id";
+
+export function meta({ loaderData }: Route.MetaArgs) {
+  return [{ title: `${loaderData?.detail?.name ?? "제품 상세"} · MTM` }];
+}
+
+export async function loader({ request, params, context }: Route.LoaderArgs) {
+  const auth = requireAuth(request, context);
+  const id = Number(params.id);
+
+  // 주소는 손으로 고칠 수 있다. 숫자가 아니면 백엔드에 물어볼 것도 없다.
+  if (!Number.isInteger(id) || id <= 0) {
+    return { detail: null, error: "없는 제품입니다." };
+  }
+
+  try {
+    const detail = toProductDetail(await getProduct(auth, id));
+
+    return detail
+      ? { detail, error: null }
+      : { detail: null, error: "없는 제품입니다." };
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return {
+        detail: null,
+        error:
+          error.status === 404 ? "없는 제품입니다." : "제품을 불러오지 못했습니다.",
+      };
+    }
+
+    throw error;
+  }
+}
+
+export default function ProductDetail({ loaderData }: Route.ComponentProps) {
+  const { detail, error } = loaderData;
+
+  return (
+    <div className="flex min-h-screen flex-col bg-surface-base">
+      <Header />
+      <div className="mx-auto w-full max-w-page border-b border-solid border-border-default px-6 py-[10px]">
+        <Link to="/products" className="text-caption text-text-tertiary">
+          ← 제품 목록
+        </Link>
+      </div>
+
+      {detail ? (
+        <Detail detail={detail} />
+      ) : (
+        // 상단 「← 제품 목록」이 살아 있지만, 실패 화면에서 다음 행동을 눈에 띄게 둔다
+        <main className="mx-auto w-full max-w-page px-10 py-7">
+          <EmptyState
+            action={
+              <Link to="/products">
+                <OutlineButton type="button">제품 목록으로</OutlineButton>
+              </Link>
+            }
+          >
+            {error}
+          </EmptyState>
+        </main>
+      )}
+    </div>
+  );
+}
+
+function Detail({ detail }: { detail: ProductDetailView }) {
+  const [selectedCut, setSelectedCut] = useState(detail.initialCut);
+  const cut = detail.cuts[selectedCut];
+
+  return (
+    <div className="mx-auto flex w-full max-w-page flex-1 flex-col items-start lg:flex-row">
+      {/* 좌 — 제품 컷 */}
+      <div className="flex w-full min-w-px flex-1 flex-col gap-3 px-4 py-4 lg:h-full lg:w-auto lg:border-r lg:border-solid lg:border-border-default lg:px-10 lg:py-7">
+        {/* 컷 원본이 거의 정사각이다. 가로로만 넓은 칸에 object-contain 을 쓰면 짧은 쪽인
+            높이에 맞춰져서, 칸을 아무리 넓혀도 이미지는 커지지 않고 좌우 여백만 늘어난다.
+            칸을 정사각으로 두고 폭 상한을 줘서 이미지가 실제로 커지게 한다. */}
+        {cut ? (
+          <img
+            src={cut.imageUrl}
+            alt=""
+            className="mx-auto h-[220px] w-full border border-solid border-border-default bg-surface-base object-contain lg:aspect-square lg:h-auto lg:max-w-[720px]"
+          />
+        ) : (
+          <div className="mx-auto flex h-[220px] w-full flex-col items-center justify-center border border-solid border-border-default bg-surface-track text-[11px] text-text-tertiary lg:aspect-square lg:h-auto lg:max-w-[720px]">
+            제품 컷
+          </div>
+        )}
+        {/* 컷이 1장뿐이면 이 줄을 감춘다 — 빈 줄을 남기지 않는다 */}
+        {detail.cuts.length > 1 ? (
+          <div className="mx-auto flex w-full max-w-[720px] gap-2">
+            {detail.cuts.map((thumb, i) => (
+              <button
+                key={thumb.id}
+                type="button"
+                aria-label={`제품 컷 ${i + 1}`}
+                aria-pressed={selectedCut === i}
+                onClick={() => setSelectedCut(i)}
+                className={
+                  "size-[64px] bg-surface-base focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-border-emphasis " +
+                  (selectedCut === i
+                    ? "border-2 border-solid border-border-emphasis"
+                    : "border border-solid border-border-default")
+                }
+              >
+                <img
+                  src={thumb.imageUrl}
+                  alt=""
+                  loading="lazy"
+                  className="size-full object-contain"
+                />
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
+      {/* 우 — 스펙. 크기를 입어보기 버튼 바로 위에 둔다 */}
+      <div className="flex w-full flex-col gap-[10px] px-4 pb-4 lg:h-full lg:w-[380px] lg:shrink-0 lg:p-7">
+        <h1 className="text-[20px] font-bold text-text-primary">{detail.name}</h1>
+        {detail.price ? (
+          <p className="text-body text-text-secondary">{detail.price}</p>
+        ) : null}
+        {detail.wearType ? (
+          <div>
+            <SpecTag>{detail.wearType}</SpecTag>
+          </div>
+        ) : null}
+
+        {detail.dimensions.length > 0 ? (
+          <>
+            <div className="h-[10px]" />
+            <h2 className="text-[14px] font-medium text-text-secondary">크기</h2>
+            {detail.dimensions.map((row) => (
+              <div key={row.label} className="flex gap-4 text-caption">
+                <span className="w-[50px] text-text-tertiary">{row.label}</span>
+                <span className="whitespace-pre text-text-secondary">
+                  {row.value}
+                </span>
+              </div>
+            ))}
+          </>
+        ) : null}
+
+        <div className="h-[8px]" />
+        {/* 여기서 만들지 않고 착용 화면으로 보낸다. 생성이 동기라 최대 2분 걸리는데
+            그동안 보여줄 로딩 자리가 이 화면에는 없고, 착용 화면에는 로딩·실패·완료가
+            시안대로 이미 있다. 그 화면이 조합을 보고 없으면 만든다.
+
+            모바일은 하단 고정이다(시안 8:1062) — 상세를 읽어 내려가다 「그럼 내 몸엔?」이
+            떠오르는 순간에 버튼이 화면 밖에 있으면 안 된다. */}
+        <div className="sticky bottom-0 -mx-4 border-t border-solid border-border-default bg-surface-base px-4 py-3 lg:static lg:mx-0 lg:border-0 lg:p-0">
+          <Link to={`/?product=${detail.id}`} className="block">
+            <OutlineButton type="button" className="w-full lg:w-auto">
+              이 제품 입어보기
+            </OutlineButton>
+          </Link>
+        </div>
+
+        {detail.description ? (
+          <>
+            <div className="h-3" />
+            <h2 className="text-[14px] font-medium text-text-secondary">상세</h2>
+            <Description text={detail.description} />
+          </>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * 시안은 글머리 기호 목록인데 API 는 `description` 문자열 하나를 준다.
+ * 줄이 여러 개면 시안대로 목록으로, 한 문단이면 문단 그대로 그린다 —
+ * 한 줄짜리에 `·` 를 붙이면 목록도 문장도 아닌 것이 된다.
+ */
+function Description({ text }: { text: string }) {
+  const lines = text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (lines.length <= 1) {
+    return <p className="text-caption text-text-secondary">{text}</p>;
+  }
+
+  return (
+    <ul className="text-caption text-text-secondary">
+      {lines.map((line) => (
+        <li key={line}>· {line}</li>
+      ))}
+    </ul>
+  );
+}
