@@ -94,6 +94,7 @@ export default function Login({
           label="이메일"
           name="email"
           type="email"
+          placeholder="name@example.com"
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -102,6 +103,7 @@ export default function Login({
           label="비밀번호"
           name="password"
           type="password"
+          placeholder="비밀번호 입력"
           autoComplete="current-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
